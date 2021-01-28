@@ -31,7 +31,7 @@ defmodule HttpClients.MixProject do
       {:tesla, "~> 1.4.0"},
       {:jason, ">= 1.0.0"},
       {:goodies, github: "bcredi/goodies"},
-      {:credo, "~> 1.5"},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.13", only: :test}
     ]
   end
