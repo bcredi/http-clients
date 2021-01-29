@@ -3,6 +3,7 @@ defmodule HttpClients.UnderwriterTest do
   import Tesla.Mock
 
   alias HttpClients.Underwriter
+  alias Underwriter.Proponent
 
   @base_url "http://bcredi.com"
   @client_id "client-id"
@@ -38,31 +39,37 @@ defmodule HttpClients.UnderwriterTest do
 
   describe "create_proponent/2" do
     test "calls underwriter and creates proponent" do
+      proponent_id = UUID.uuid4()
       proponents_url = "#{@base_url}/v1/proponents"
 
       mock(fn %{method: :post, url: ^proponents_url} ->
         json(%{"id" => proponent_id})
       end)
 
-      assert {:ok, %Tesla.Env{body: response_body, status: 200}} =
-               Underwriter.create_proponent(client(), %{})
+      proponent = %Proponent{
+        birthdate: "1980-12-31",
+        email: "some@email.com",
+        cpf: "12345678901",
+        name: "Fulano Sicrano",
+        mobile_phone_number: "41999999999",
+        proposal_id: proponent_id,
+        added_by_proponent: "Joao da silva"
+      }
 
-      assert response_body == expected_response_body
+      assert {:ok, expected_response} = Underwriter.create_proponent(client(), proponent)
+      assert %Tesla.Env{body: %{"id" => ^proponent_id}, status: 200} = expected_response
     end
 
-    test "returns error when the resource not exists" do
-      proponent_id = UUID.uuid4()
-      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+    test "returns error when response status is 422" do
+      proponents_url = "#{@base_url}/v1/proponents"
+      response_body = %{"errors" => %{"cpf" => "can't be blank"}}
+      mock(fn %{method: :post, url: ^proponents_url} -> json(response_body, status: 422) end)
+      proponent = %Proponent{cpf: nil}
 
-      mock(fn %{method: :get, url: ^proponents_url} ->
-        %Tesla.Env{status: 404, body: %{"errors" => %{"detail" => "Not Found"}}}
-      end)
+      assert {:error, %Tesla.Env{} = expected_response} =
+               Underwriter.create_proponent(client(), proponent)
 
-      assert {:error, %Tesla.Env{body: response_body, status: 404}} =
-               CustomerManagement.get_proponent(client(), proponent_id)
-
-      expected_response_body = %{"errors" => %{"detail" => "Not Found"}}
-      assert response_body == expected_response_body
+      assert %Tesla.Env{body: ^response_body, status: 422} = expected_response
     end
   end
 
