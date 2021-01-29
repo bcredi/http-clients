@@ -3,7 +3,7 @@ defmodule HttpClients.UnderwriterTest do
   import Tesla.Mock
 
   alias HttpClients.Underwriter
-  alias Underwriter.Proponent
+  alias HttpClients.Underwriter.Proponent
 
   @base_url "http://bcredi.com"
   @client_id "client-id"
@@ -34,37 +34,35 @@ defmodule HttpClients.UnderwriterTest do
   end
 
   describe "create_proponent/2" do
+    @proponent %Proponent{
+      birthdate: "1980-12-31",
+      email: "some@email.com",
+      cpf: "12345678901",
+      name: "Fulano Sicrano",
+      mobile_phone_number: "41999999999",
+      proposal_id: "some_id",
+      added_by_proponent: "Joao da silva"
+    }
+
     test "calls underwriter and creates proponent" do
       proponent_id = UUID.uuid4()
       proponents_url = "#{@base_url}/v1/proponents"
+      expected_proponent = Map.put(@proponent, :id, proponent_id)
 
       mock(fn %{method: :post, url: ^proponents_url} ->
-        json(%{"id" => proponent_id})
+        json(%{data: expected_proponent}, status: 201)
       end)
 
-      proponent = %Proponent{
-        birthdate: "1980-12-31",
-        email: "some@email.com",
-        cpf: "12345678901",
-        name: "Fulano Sicrano",
-        mobile_phone_number: "41999999999",
-        proposal_id: proponent_id,
-        added_by_proponent: "Joao da silva"
-      }
-
-      assert {:ok, expected_response} = Underwriter.create_proponent(client(), proponent)
-      assert %Tesla.Env{body: %{"id" => ^proponent_id}, status: 200} = expected_response
+      assert {:ok, ^expected_proponent} = Underwriter.create_proponent(client(), @proponent)
     end
 
-    test "returns error when response status is 422" do
+    test "returns error when response status is not 201" do
       proponents_url = "#{@base_url}/v1/proponents"
       response_body = %{"errors" => %{"cpf" => "can't be blank"}}
       mock(fn %{method: :post, url: ^proponents_url} -> json(response_body, status: 422) end)
-      proponent = %Proponent{cpf: nil}
+      proponent = Map.put(@proponent, :cpf, nil)
 
-      assert {:error, %Tesla.Env{} = expected_response} =
-               Underwriter.create_proponent(client(), proponent)
-
+      assert {:error, expected_response} = Underwriter.create_proponent(client(), proponent)
       assert %Tesla.Env{body: ^response_body, status: 422} = expected_response
     end
   end
