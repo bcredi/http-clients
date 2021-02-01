@@ -1,6 +1,5 @@
 defmodule HttpClients.Underwriter.Proponent do
   @moduledoc false
-  @derive Jason.Encoder
 
   @type t :: %__MODULE__{
           id: binary(),
@@ -8,10 +7,10 @@ defmodule HttpClients.Underwriter.Proponent do
           email: String.t(),
           cpf: String.t(),
           name: String.t(),
-          mobile_phone_number: String.t(),
           proposal_id: binary(),
-          added_by_proponent: String.t()
+          added_by: String.t()
         }
 
-  defstruct ~w(id birthdate email cpf name mobile_phone_number proposal_id added_by_proponent)a
+  @derive Jason.Encoder
+  defstruct ~w(id birthdate email cpf name mobile_phone_number proposal_id added_by)a
 end
