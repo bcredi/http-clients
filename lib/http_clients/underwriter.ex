@@ -21,7 +21,7 @@ defmodule HttpClients.Underwriter do
       cpf: proponent["cpf"],
       name: proponent["name"],
       proposal_id: proponent["proposal_id"],
-      added_by: proponent["added_by"]
+      added_by_proponent: proponent["added_by_proponent"]
     }
   end
 

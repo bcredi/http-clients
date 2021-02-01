@@ -40,7 +40,7 @@ defmodule HttpClients.UnderwriterTest do
       cpf: "12345678901",
       name: "Fulano Sicrano",
       proposal_id: "some_id",
-      added_by: "Joao da silva"
+      added_by_proponent: "Joao da silva"
     }
 
     test "calls underwriter and creates proponent" do
