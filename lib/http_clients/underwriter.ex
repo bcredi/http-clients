@@ -20,7 +20,6 @@ defmodule HttpClients.Underwriter do
       email: proponent["email"],
       cpf: proponent["cpf"],
       name: proponent["name"],
-      mobile_phone_number: proponent["mobile_phone_number"],
       proposal_id: proponent["proposal_id"],
       added_by_proponent: proponent["added_by_proponent"]
     }
