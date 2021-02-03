@@ -8,9 +8,10 @@ defmodule HttpClients.Underwriter.Proponent do
           cpf: String.t(),
           name: String.t(),
           proposal_id: binary(),
-          added_by_proponent: String.t()
+          added_by_proponent: String.t(),
+          serial_id: integer()
         }
 
   @derive Jason.Encoder
-  defstruct ~w(id birthdate email cpf name mobile_phone_number proposal_id added_by_proponent)a
+  defstruct ~w(id birthdate email cpf name mobile_phone_number proposal_id added_by_proponent serial_id)a
 end
