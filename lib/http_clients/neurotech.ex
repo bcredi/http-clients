@@ -85,7 +85,7 @@ defmodule HttpClients.Neurotech do
   defp put_base_date(inputs, base_date)
   defp put_base_date(inputs, nil), do: inputs
 
-  defp put_base_date(inputs, base_date) do
+  defp put_base_date(inputs, %Date{} = base_date) do
     base_date = Calendar.strftime(base_date, "%d/%m/%Y")
     Map.put(inputs, "PROP_BACEN_DATA_BASE", base_date)
   end
