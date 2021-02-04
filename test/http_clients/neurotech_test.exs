@@ -54,7 +54,12 @@ defmodule HttpClients.NeurotechTest do
   describe "compute_bacen_score/2" do
     test "returns score when the request succeeds" do
       response_body = bacen_response(:success)
-      mock(fn %{url: "/submit", method: :post} -> json(response_body) end)
+
+      mock(fn %{url: "/submit", method: :post, body: body} ->
+        assert not String.match?(body, ~r/PROP_BACEN_DATA_BASE/)
+        json(response_body)
+      end)
+
       person = %Neurotech.Person{cpf: "65661563051"}
 
       expected_analysis = %Score{
@@ -65,6 +70,35 @@ defmodule HttpClients.NeurotechTest do
 
       assert {:ok, ^expected_analysis} =
                Neurotech.compute_bacen_score(client(), credentials(), person, @transaction_id)
+    end
+
+    test "requests score using base_date option" do
+      response_body = bacen_response(:success)
+
+      mock(fn %{url: "/submit", method: :post, body: body} ->
+        assert String.match?(body, ~r/PROP_BACEN_DATA_BASE/)
+        assert String.match?(body, ~r/01\/10\/2017/)
+        json(response_body)
+      end)
+
+      person = %Neurotech.Person{cpf: "65661563051"}
+
+      expected_analysis = %Score{
+        score: 444,
+        positive_analysis: "- Sem registro de vencidos no histórico.\r\n",
+        negative_analysis: "- LIMITE DE CRÉDITO abaixo de R$1.000,00 no histórico.\r\n"
+      }
+
+      opts = [base_date: ~D[2017-10-01]]
+
+      assert {:ok, ^expected_analysis} =
+               Neurotech.compute_bacen_score(
+                 client(),
+                 credentials(),
+                 person,
+                 @transaction_id,
+                 opts
+               )
     end
 
     test "returns score when the some analysis is empty" do

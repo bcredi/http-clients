@@ -45,19 +45,24 @@ defmodule HttpClients.Neurotech do
 
   defp approved?(status), do: status == "APROVADO"
 
-  @spec compute_bacen_score(Tesla.Client.t(), Credentials.t(), Person.t(), integer()) ::
+  @spec compute_bacen_score(Tesla.Client.t(), Credentials.t(), Person.t(), integer(), Keyword.t()) ::
           {:ok, map()} | {:error, any()}
   def compute_bacen_score(
         %Tesla.Client{} = client,
         %Credentials{} = credentials,
         %Person{} = person,
-        transaction_id
+        transaction_id,
+        opts \\ []
       )
-      when is_integer(transaction_id) do
-    inputs = %{
-      "PROP_POLITICA" => "BACEN_SCR",
-      "PROP_BACEN_CPFCNPJ" => person.cpf
-    }
+      when is_integer(transaction_id) and is_list(opts) do
+    base_date = Keyword.get(opts, :base_date)
+
+    inputs =
+      %{
+        "PROP_POLITICA" => "BACEN_SCR",
+        "PROP_BACEN_CPFCNPJ" => person.cpf
+      }
+      |> put_base_date(base_date)
 
     request = %Request{
       inputs: inputs,
@@ -75,6 +80,14 @@ defmodule HttpClients.Neurotech do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp put_base_date(inputs, base_date)
+  defp put_base_date(inputs, nil), do: inputs
+
+  defp put_base_date(inputs, base_date) do
+    base_date = Calendar.strftime(base_date, "%d/%m/%Y")
+    Map.put(inputs, "PROP_BACEN_DATA_BASE", base_date)
   end
 
   defp parse_bacen_analysis(bacen_analysis) do
