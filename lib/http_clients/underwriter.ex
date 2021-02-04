@@ -4,7 +4,16 @@ defmodule HttpClients.Underwriter do
   """
   alias HttpClients.Underwriter.Proponent
 
-  @spec create_proponent(Tesla.Client.t(), Proponent.t()) :: {:error, any} | {:ok, Tesla.Env.t()}
+  @spec get_proponent(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Tesla.Env.t()}
+  def get_proponent(%Tesla.Client{} = client, proponent_id) do
+    case Tesla.get(client, "/v1/proponents/#{proponent_id}") do
+      {:ok, %Tesla.Env{status: 200} = response} -> {:ok, response}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @spec create_proponent(Tesla.Client.t(), Proponent.t()) :: {:error, any} | {:ok, Proponent.t()}
   def create_proponent(%Tesla.Client{} = client, %Proponent{} = proponent) do
     case Tesla.post(client, "/v1/proponents", proponent) do
       {:ok, %Tesla.Env{status: 201} = response} -> {:ok, build_struct(response.body["data"])}
@@ -20,7 +29,6 @@ defmodule HttpClients.Underwriter do
       email: proponent["email"],
       cpf: proponent["cpf"],
       name: proponent["name"],
-      mobile_phone_number: proponent["mobile_phone_number"],
       proposal_id: proponent["proposal_id"],
       added_by_proponent: proponent["added_by_proponent"]
     }

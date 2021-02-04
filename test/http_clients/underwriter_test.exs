@@ -39,7 +39,6 @@ defmodule HttpClients.UnderwriterTest do
       email: "some@email.com",
       cpf: "12345678901",
       name: "Fulano Sicrano",
-      mobile_phone_number: "41999999999",
       proposal_id: "some_id",
       added_by_proponent: "Joao da silva"
     }
@@ -64,6 +63,38 @@ defmodule HttpClients.UnderwriterTest do
 
       assert {:error, expected_response} = Underwriter.create_proponent(client(), proponent)
       assert %Tesla.Env{body: ^response_body, status: 422} = expected_response
+    end
+  end
+
+  describe "get_proponent/2" do
+    test "returns a proponent" do
+      proponent_id = UUID.uuid4()
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      mock(fn %{method: :get, url: ^proponents_url} ->
+        json(%{"id" => proponent_id})
+      end)
+
+      assert {:ok, %Tesla.Env{body: response_body, status: 200}} =
+               Underwriter.get_proponent(client(), proponent_id)
+
+      expected_response_body = %{"id" => proponent_id}
+      assert response_body == expected_response_body
+    end
+
+    test "returns error when the resource not exists" do
+      proponent_id = UUID.uuid4()
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      mock(fn %{method: :get, url: ^proponents_url} ->
+        %Tesla.Env{status: 404, body: %{"errors" => %{"detail" => "Not Found"}}}
+      end)
+
+      assert {:error, %Tesla.Env{body: response_body, status: 404}} =
+               Underwriter.get_proponent(client(), proponent_id)
+
+      expected_response_body = %{"errors" => %{"detail" => "Not Found"}}
+      assert response_body == expected_response_body
     end
   end
 
