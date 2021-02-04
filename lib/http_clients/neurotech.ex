@@ -16,7 +16,8 @@ defmodule HttpClients.Neurotech do
     inputs = %{
       "PROP_POLITICA" => "VALIDACAO_IDENTIDADE",
       "PROP_VALIDACAO_IDENTIDADE_CPF" => person.cpf,
-      "PROP_VALIDACAO_IDENTIDADE_DATA_NASCIMENTO" => format_date(person.birthdate),
+      "PROP_VALIDACAO_IDENTIDADE_DATA_NASCIMENTO" =>
+        Calendar.strftime(person.birthdate, "%d/%m/%Y"),
       "PROP_VALIDACAO_IDENTIDADE_NOME" => person.name
     }
 
@@ -36,11 +37,6 @@ defmodule HttpClients.Neurotech do
       {:error, reason} ->
         {:error, reason}
     end
-  end
-
-  defp format_date(%Date{} = date) do
-    month = if date.month < 10, do: "0#{date.month}", else: date.month
-    "#{date.day}/#{month}/#{date.year}"
   end
 
   defp approved?(status), do: status == "APROVADO"
