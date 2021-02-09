@@ -98,5 +98,50 @@ defmodule HttpClients.UnderwriterTest do
     end
   end
 
+  describe "update_proponent/2" do
+    test "returns a proponent" do
+      proponent_id = UUID.uuid4()
+      email = "some@email.com"
+      proponent = %Proponent{id: proponent_id, email: email}
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      mock(fn %{method: :patch, url: ^proponents_url} ->
+        %Tesla.Env{status: 200, body: %{"data" => %{"id" => proponent_id, "email" => email}}}
+      end)
+
+      assert {:ok, ^proponent} = Underwriter.update_proponent(client(), proponent)
+    end
+
+    test "returns error when the resource not exists" do
+      proponent_id = UUID.uuid4()
+      email = "some@email.com"
+      proponent = %Proponent{id: proponent_id, email: email}
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      mock(fn %{method: :patch, url: ^proponents_url} ->
+        %Tesla.Env{status: 404, body: %{"errors" => %{"detail" => "Not Found"}}}
+      end)
+
+      assert {:error, %Tesla.Env{body: response_body, status: 404}} =
+               Underwriter.update_proponent(client(), proponent)
+
+      expected_response_body = %{"errors" => %{"detail" => "Not Found"}}
+      assert response_body == expected_response_body
+    end
+
+    test "returns error when email is invalid" do
+      proponent_id = UUID.uuid4()
+      email = "invalid#email.com"
+      proponent = %Proponent{id: proponent_id, email: email}
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      response_body = %{"errors" => %{"email" => ["has invalid format"]}}
+      mock(fn %{method: :patch, url: ^proponents_url} -> json(response_body, status: 422) end)
+
+      assert {:error, expected_response} = Underwriter.update_proponent(client(), proponent)
+      assert %Tesla.Env{body: ^response_body, status: 422} = expected_response
+    end
+  end
+
   defp client, do: Tesla.client([{Tesla.Middleware.BaseUrl, @base_url}, Tesla.Middleware.JSON])
 end
