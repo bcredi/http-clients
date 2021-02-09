@@ -34,9 +34,9 @@ defmodule HttpClients.Underwriter do
     }
   end
 
-  @spec update_proponent_email(Tesla.Client.t(), Proponent.t()) ::
+  @spec update_proponent(Tesla.Client.t(), Proponent.t()) ::
           {:error, any} | {:ok, Proponent.t()}
-  def update_proponent_email(%Tesla.Client{} = client, %Proponent{} = proponent) do
+  def update_proponent(%Tesla.Client{} = client, %Proponent{} = proponent) do
     case Tesla.patch(client, "/v1/proponents/#{proponent.id}", proponent) do
       {:ok, %Tesla.Env{status: 200} = response} -> {:ok, build_struct(response.body["data"])}
       {:ok, %Tesla.Env{} = response} -> {:error, response}

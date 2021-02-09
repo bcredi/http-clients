@@ -98,7 +98,7 @@ defmodule HttpClients.UnderwriterTest do
     end
   end
 
-  describe "update_proponent_email/2" do
+  describe "update_proponent/2" do
     test "returns a proponent" do
       proponent_id = UUID.uuid4()
       email = "some@email.com"
@@ -109,7 +109,7 @@ defmodule HttpClients.UnderwriterTest do
         %Tesla.Env{status: 200, body: %{"data" => %{"id" => proponent_id, "email" => email}}}
       end)
 
-      assert {:ok, ^proponent} = Underwriter.update_proponent_email(client(), proponent)
+      assert {:ok, ^proponent} = Underwriter.update_proponent(client(), proponent)
     end
 
     test "returns error when the resource not exists" do
@@ -123,7 +123,7 @@ defmodule HttpClients.UnderwriterTest do
       end)
 
       assert {:error, %Tesla.Env{body: response_body, status: 404}} =
-               Underwriter.update_proponent_email(client(), proponent)
+               Underwriter.update_proponent(client(), proponent)
 
       expected_response_body = %{"errors" => %{"detail" => "Not Found"}}
       assert response_body == expected_response_body
@@ -138,7 +138,7 @@ defmodule HttpClients.UnderwriterTest do
       response_body = %{"errors" => %{"email" => ["has invalid format"]}}
       mock(fn %{method: :patch, url: ^proponents_url} -> json(response_body, status: 422) end)
 
-      assert {:error, expected_response} = Underwriter.update_proponent_email(client(), proponent)
+      assert {:error, expected_response} = Underwriter.update_proponent(client(), proponent)
       assert %Tesla.Env{body: ^response_body, status: 422} = expected_response
     end
   end
