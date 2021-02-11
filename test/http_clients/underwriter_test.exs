@@ -82,7 +82,7 @@ defmodule HttpClients.UnderwriterTest do
       assert response_body == expected_response_body
     end
 
-    test "returns error when the resource not exists" do
+    test "returns error when the proponent doesn't exist" do
       proponent_id = UUID.uuid4()
       proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
 
@@ -112,7 +112,7 @@ defmodule HttpClients.UnderwriterTest do
       assert {:ok, ^proponent} = Underwriter.update_proponent(client(), proponent)
     end
 
-    test "returns error when the resource not exists" do
+    test "returns error when the proponent doesn't exist" do
       proponent_id = UUID.uuid4()
       email = "some@email.com"
       proponent = %Proponent{id: proponent_id, email: email}
@@ -156,7 +156,7 @@ defmodule HttpClients.UnderwriterTest do
       assert {:ok, nil} = Underwriter.remove_proponent(client(), proponent)
     end
 
-    test "returns error when the resource not exists" do
+    test "returns error when the proponent doesn't exist" do
       proponent_id = UUID.uuid4()
       proponent = %Proponent{id: proponent_id}
       proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
