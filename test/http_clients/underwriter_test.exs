@@ -143,5 +143,34 @@ defmodule HttpClients.UnderwriterTest do
     end
   end
 
+  describe "remove_proponent/2" do
+    test "returns :ok tuple" do
+      proponent_id = UUID.uuid4()
+      proponent = %Proponent{id: proponent_id}
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      mock(fn %{method: :delete, url: ^proponents_url} ->
+        %Tesla.Env{status: 204, body: %{}}
+      end)
+
+      assert {:ok, nil} = Underwriter.remove_proponent(client(), proponent)
+    end
+
+    test "returns error when the resource not exists" do
+      proponent_id = UUID.uuid4()
+      proponent = %Proponent{id: proponent_id}
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      mock(fn %{method: :delete, url: ^proponents_url} ->
+        %Tesla.Env{status: 404, body: %{"errors" => %{"detail" => "Not Found"}}}
+      end)
+
+      assert {:error, %Tesla.Env{body: response_body, status: 404}} =
+               Underwriter.remove_proponent(client(), proponent)
+
+      assert response_body == %{"errors" => %{"detail" => "Not Found"}}
+    end
+  end
+
   defp client, do: Tesla.client([{Tesla.Middleware.BaseUrl, @base_url}, Tesla.Middleware.JSON])
 end

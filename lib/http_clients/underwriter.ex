@@ -44,6 +44,16 @@ defmodule HttpClients.Underwriter do
     end
   end
 
+  @spec remove_proponent(Tesla.Client.t(), Proponent.t()) ::
+          {:error, any} | {:ok, Proponent.t()}
+  def remove_proponent(%Tesla.Client{} = client, %Proponent{} = proponent) do
+    case Tesla.delete(client, "/v1/proponents/#{proponent.id}") do
+      {:ok, %Tesla.Env{status: 204}} -> {:ok, nil}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   @spec client(String.t(), String.t(), String.t()) :: Tesla.Client.t()
   def client(base_url, client_id, client_secret) do
     headers = authorization_headers(client_id, client_secret)
