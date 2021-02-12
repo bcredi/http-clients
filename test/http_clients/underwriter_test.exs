@@ -153,7 +153,7 @@ defmodule HttpClients.UnderwriterTest do
         %Tesla.Env{status: 204, body: %{}}
       end)
 
-      assert {:ok, nil} = Underwriter.remove_proponent(client(), proponent)
+      assert :ok = Underwriter.remove_proponent(client(), proponent)
     end
 
     test "returns error when the proponent doesn't exist" do
