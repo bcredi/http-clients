@@ -51,7 +51,7 @@ defmodule HttpClients.CustomerManagementTest do
       assert response_body == %{"id" => proposal_id}
     end
 
-    test "returns error when the resource not exists" do
+    test "returns an error when proposal doesn't exist" do
       proposal_id = UUID.uuid4()
       proposals_url = "#{@base_url}/v1/proposals/#{proposal_id}"
 
@@ -61,6 +61,36 @@ defmodule HttpClients.CustomerManagementTest do
 
       assert {:error, %Tesla.Env{body: response_body, status: 404}} =
                CustomerManagement.get_proposal(client(), proposal_id)
+
+      assert response_body == %{"errors" => %{"detail" => "Not Found"}}
+    end
+  end
+
+  describe "get_proponent/2" do
+    test "returns a proponent" do
+      proponent_id = UUID.uuid4()
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      mock(fn %{method: :get, url: ^proponents_url} ->
+        json(%{"id" => proponent_id})
+      end)
+
+      assert {:ok, %Tesla.Env{body: response_body, status: 200}} =
+               CustomerManagement.get_proponent(client(), proponent_id)
+
+      assert response_body == %{"id" => proponent_id}
+    end
+
+    test "returns an error when proponent doesn't exist" do
+      proponent_id = UUID.uuid4()
+      proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
+
+      mock(fn %{method: :get, url: ^proponents_url} ->
+        %Tesla.Env{status: 404, body: %{"errors" => %{"detail" => "Not Found"}}}
+      end)
+
+      assert {:error, %Tesla.Env{body: response_body, status: 404}} =
+               CustomerManagement.get_proponent(client(), proponent_id)
 
       assert response_body == %{"errors" => %{"detail" => "Not Found"}}
     end
