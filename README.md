@@ -1,6 +1,6 @@
 # HttpClients
 
-API clients for BCreditas platform.
+API clients for Bcredi platform.
 
 ## Installation
 
