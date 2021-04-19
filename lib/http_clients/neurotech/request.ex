@@ -36,7 +36,7 @@ defmodule HttpClients.Neurotech.Request do
 
     request = build_body(request)
 
-    Tesla.post(client, "/submit", request, client_opts)
+    Tesla.post(client, "/submit", request, opts: client_opts)
   end
 
   defp build_inputs(%{} = inputs) when inputs != %{},

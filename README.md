@@ -1,21 +1,21 @@
 # HttpClients
 
-**TODO: Add description**
+API clients for Bcredi platform.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `http_clients` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `http_clients` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:http_clients, "~> 0.1.0"}
+    {:http_clients, github: "bcredi/http-clients", branch: "main"}
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/http_clients](https://hexdocs.pm/http_clients).
+Add Hackney as Tesla default adapter in `config.exs`:
 
+```elixir
+config :tesla, adapter: Tesla.Adapter.Hackney
+```

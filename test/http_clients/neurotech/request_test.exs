@@ -19,7 +19,11 @@ defmodule HttpClients.Neurotech.RequestTest do
       }
 
       neurotech_response = bacen_response(:success)
-      mock(fn %{url: "/submit", method: :post} -> json(neurotech_response) end)
+      expected_opts = [adapter: [ssl_options: [verify: :verify_none], recv_timeout: 600_000]]
+
+      mock(fn %{url: "/submit", method: :post, opts: ^expected_opts} ->
+        json(neurotech_response)
+      end)
 
       assert {:ok, %Tesla.Env{status: 200, body: %{"StatusCode" => "0100"}}} =
                Request.submit(client(), request)
