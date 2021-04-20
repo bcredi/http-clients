@@ -27,9 +27,10 @@ defmodule HttpClients.ScrAuthorizerTest do
         {Goodies.Tesla.Middleware.RequestIdForwarder, :call, [[]]}
       ]
 
-      client = ScrAuthorizer.client(@base_url, @client_id, @client_secret)
-      assert %Tesla.Client{} = client
-      assert client.pre == expected_configs
+      assert %Tesla.Client{pre: configs} =
+               ScrAuthorizer.client(@base_url, @client_id, @client_secret)
+
+      assert configs == expected_configs
     end
   end
 
