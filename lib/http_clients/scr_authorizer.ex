@@ -11,18 +11,23 @@ defmodule HttpClients.ScrAuthorizer do
         %ProponentAuthorization{} = authorization
       ) do
     case Tesla.post(client, "/v1/proponent-authorizations", authorization) do
-      {:ok, %Tesla.Env{status: 201} = response} -> {:ok, build_struct(response.body["data"])}
-      {:ok, %Tesla.Env{} = response} -> {:error, response}
-      {:error, reason} -> {:error, reason}
+      {:ok, %Tesla.Env{status: 201} = response} ->
+        {:ok, build_proponent_authorization(response.body["data"])}
+
+      {:ok, %Tesla.Env{} = response} ->
+        {:error, response}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
-  defp build_struct(proponent_authorization) do
+  defp build_proponent_authorization(authorization) do
     %ProponentAuthorization{
-      id: proponent_authorization["id"],
-      proponent_id: proponent_authorization["proponent_id"],
-      user_agent: proponent_authorization["user_agent"],
-      ip: proponent_authorization["ip"]
+      id: authorization["id"],
+      proponent_id: authorization["proponent_id"],
+      user_agent: authorization["user_agent"],
+      ip: authorization["ip"]
     }
   end
 

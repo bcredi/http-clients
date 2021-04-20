@@ -59,8 +59,8 @@ defmodule HttpClients.ScrAuthorizerTest do
         json(%{data: expected_authorization}, status: 201)
       end)
 
-      assert {:ok, ^expected_authorization} =
-               ScrAuthorizer.create_proponent_authorization(client(), @proponent_authorization)
+      assert ScrAuthorizer.create_proponent_authorization(client(), @proponent_authorization) ==
+               {:ok, expected_authorization}
     end
 
     test "returns error when authorization was not created" do
