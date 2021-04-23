@@ -58,6 +58,9 @@ defmodule HttpClients.Underwriter do
     case Tesla.put(client, "/v1/proposals/#{proposal.id}", proposal) do
       {:ok, %Tesla.Env{status: 200} = response} ->
         {:ok, build_proposal_struct(response.body["data"])}
+
+      {:ok, %Tesla.Env{} = response} ->
+        {:error, response}
     end
   end
 

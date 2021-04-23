@@ -188,6 +188,18 @@ defmodule HttpClients.UnderwriterTest do
 
       assert {:ok, ^proposal} = Underwriter.update_proposal(client(), proposal)
     end
+
+    test "returns error when payload is invalid" do
+      proposal_id = UUID.uuid4()
+      proposal = %Proposal{id: proposal_id}
+      proposal_url = "#{@base_url}/v1/proposals/#{proposal_id}"
+
+      response_body = %{"errors" => %{"sales_stage" => ["can't be blank"]}}
+      mock(fn %{method: :put, url: ^proposal_url} -> json(response_body, status: 422) end)
+
+      assert {:error, expected_response} = Underwriter.update_proposal(client(), proposal)
+      assert %Tesla.Env{body: ^response_body, status: 422} = expected_response
+    end
   end
 
   defp client, do: Tesla.client([{Tesla.Middleware.BaseUrl, @base_url}, Tesla.Middleware.JSON])
