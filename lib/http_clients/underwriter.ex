@@ -61,6 +61,9 @@ defmodule HttpClients.Underwriter do
 
       {:ok, %Tesla.Env{} = response} ->
         {:error, response}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
