@@ -2,7 +2,7 @@ defmodule HttpClients.Underwriter do
   @moduledoc """
   Client for Underwriter calls
   """
-  alias HttpClients.Underwriter.Proponent
+  alias HttpClients.Underwriter.{Proponent, Proposal}
 
   @spec get_proponent(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Tesla.Env.t()}
   def get_proponent(%Tesla.Client{} = client, proponent_id) do
@@ -51,6 +51,22 @@ defmodule HttpClients.Underwriter do
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  @spec update_proposal(Tesla.Client.t(), Proposal.t()) :: {:error, any} | {:ok, Proposal.t()}
+  def update_proposal(%Tesla.Client{} = client, %Proposal{} = proposal) do
+    case Tesla.put(client, "/v1/proposals/#{proposal.id}", proposal) do
+      {:ok, %Tesla.Env{status: 200} = response} ->
+        {:ok, build_proposal_struct(response.body["data"])}
+    end
+  end
+
+  defp build_proposal_struct(proposal) do
+    %Proposal{
+      id: proposal["id"],
+      sales_stage: proposal["sales_stage"],
+      lost_reason: proposal["lost_reason"]
+    }
   end
 
   @spec client(String.t(), String.t(), String.t()) :: Tesla.Client.t()

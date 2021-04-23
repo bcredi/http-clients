@@ -3,7 +3,7 @@ defmodule HttpClients.UnderwriterTest do
   import Tesla.Mock
 
   alias HttpClients.Underwriter
-  alias HttpClients.Underwriter.Proponent
+  alias HttpClients.Underwriter.{Proponent, Proposal}
 
   @base_url "http://bcredi.com"
   @client_id "client-id"
@@ -169,6 +169,24 @@ defmodule HttpClients.UnderwriterTest do
                Underwriter.remove_proponent(client(), proponent)
 
       assert response_body == %{"errors" => %{"detail" => "Not Found"}}
+    end
+  end
+
+  describe "update_proposal/2" do
+    test "returns a proposal" do
+      proposal_id = UUID.uuid4()
+      sales_stage = "qualified"
+      proposal = %Proposal{id: proposal_id, sales_stage: sales_stage}
+      proposal_url = "#{@base_url}/v1/proposals/#{proposal_id}"
+
+      mock(fn %{method: :put, url: ^proposal_url} ->
+        %Tesla.Env{
+          status: 200,
+          body: %{"data" => %{"id" => proposal_id, "sales_stage" => sales_stage}}
+        }
+      end)
+
+      assert {:ok, ^proposal} = Underwriter.update_proposal(client(), proposal)
     end
   end
 
