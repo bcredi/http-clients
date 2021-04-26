@@ -16,31 +16,29 @@ defmodule HttpClients.Underwriter do
   @spec create_proponent(Tesla.Client.t(), Proponent.t()) :: {:error, any} | {:ok, Proponent.t()}
   def create_proponent(%Tesla.Client{} = client, %Proponent{} = proponent) do
     case Tesla.post(client, "/v1/proponents", proponent) do
-      {:ok, %Tesla.Env{status: 201} = response} -> {:ok, build_struct(response.body["data"])}
-      {:ok, %Tesla.Env{} = response} -> {:error, response}
-      {:error, reason} -> {:error, reason}
-    end
-  end
+      {:ok, %Tesla.Env{status: 201} = response} ->
+        {:ok, build_proponent_struct(response.body["data"])}
 
-  defp build_struct(proponent) do
-    %Proponent{
-      id: proponent["id"],
-      birthdate: proponent["birthdate"],
-      email: proponent["email"],
-      cpf: proponent["cpf"],
-      name: proponent["name"],
-      proposal_id: proponent["proposal_id"],
-      added_by_proponent: proponent["added_by_proponent"]
-    }
+      {:ok, %Tesla.Env{} = response} ->
+        {:error, response}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   @spec update_proponent(Tesla.Client.t(), Proponent.t()) ::
           {:error, any} | {:ok, Proponent.t()}
   def update_proponent(%Tesla.Client{} = client, %Proponent{} = proponent) do
     case Tesla.patch(client, "/v1/proponents/#{proponent.id}", proponent) do
-      {:ok, %Tesla.Env{status: 200} = response} -> {:ok, build_struct(response.body["data"])}
-      {:ok, %Tesla.Env{} = response} -> {:error, response}
-      {:error, reason} -> {:error, reason}
+      {:ok, %Tesla.Env{status: 200} = response} ->
+        {:ok, build_proponent_struct(response.body["data"])}
+
+      {:ok, %Tesla.Env{} = response} ->
+        {:error, response}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -51,6 +49,18 @@ defmodule HttpClients.Underwriter do
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp build_proponent_struct(proponent) do
+    %Proponent{
+      id: proponent["id"],
+      birthdate: proponent["birthdate"],
+      email: proponent["email"],
+      cpf: proponent["cpf"],
+      name: proponent["name"],
+      proposal_id: proponent["proposal_id"],
+      added_by_proponent: proponent["added_by_proponent"]
+    }
   end
 
   @spec update_proposal(Tesla.Client.t(), Proposal.t()) :: {:error, any} | {:ok, Proposal.t()}
