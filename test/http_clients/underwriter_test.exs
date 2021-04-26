@@ -186,7 +186,7 @@ defmodule HttpClients.UnderwriterTest do
         }
       end)
 
-      assert {:ok, ^proposal} = Underwriter.update_proposal(client(), proposal)
+      assert Underwriter.update_proposal(client(), proposal) == {:ok, proposal}
     end
 
     test "returns error when payload is invalid" do
@@ -207,11 +207,9 @@ defmodule HttpClients.UnderwriterTest do
       proposal = %Proposal{id: proposal_id, sales_stage: sales_stage}
       proposal_url = "#{@base_url}/v1/proposals/#{proposal_id}"
 
-      response_body = %{"errors" => %{"detail" => "Service Unavailable"}}
-      mock(fn %{method: :put, url: ^proposal_url} -> json(response_body, status: 503) end)
+      mock(fn %{method: :put, url: ^proposal_url} -> {:error, :timeout} end)
 
-      assert {:error, expected_response} = Underwriter.update_proposal(client(), proposal)
-      assert %Tesla.Env{body: ^response_body, status: 503} = expected_response
+      assert Underwriter.update_proposal(client(), proposal) == {:error, :timeout}
     end
   end
 
