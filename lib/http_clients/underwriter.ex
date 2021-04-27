@@ -2,7 +2,7 @@ defmodule HttpClients.Underwriter do
   @moduledoc """
   Client for Underwriter calls
   """
-  alias HttpClients.Underwriter.Proponent
+  alias HttpClients.Underwriter.{Proponent, Proposal}
 
   @spec get_proponent(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Tesla.Env.t()}
   def get_proponent(%Tesla.Client{} = client, proponent_id) do
@@ -16,29 +16,16 @@ defmodule HttpClients.Underwriter do
   @spec create_proponent(Tesla.Client.t(), Proponent.t()) :: {:error, any} | {:ok, Proponent.t()}
   def create_proponent(%Tesla.Client{} = client, %Proponent{} = proponent) do
     case Tesla.post(client, "/v1/proponents", proponent) do
-      {:ok, %Tesla.Env{status: 201} = response} -> {:ok, build_struct(response.body["data"])}
+      {:ok, %Tesla.Env{status: 201} = response} -> {:ok, build_proponent(response.body["data"])}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp build_struct(proponent) do
-    %Proponent{
-      id: proponent["id"],
-      birthdate: proponent["birthdate"],
-      email: proponent["email"],
-      cpf: proponent["cpf"],
-      name: proponent["name"],
-      proposal_id: proponent["proposal_id"],
-      added_by_proponent: proponent["added_by_proponent"]
-    }
-  end
-
-  @spec update_proponent(Tesla.Client.t(), Proponent.t()) ::
-          {:error, any} | {:ok, Proponent.t()}
+  @spec update_proponent(Tesla.Client.t(), Proponent.t()) :: {:error, any} | {:ok, Proponent.t()}
   def update_proponent(%Tesla.Client{} = client, %Proponent{} = proponent) do
     case Tesla.patch(client, "/v1/proponents/#{proponent.id}", proponent) do
-      {:ok, %Tesla.Env{status: 200} = response} -> {:ok, build_struct(response.body["data"])}
+      {:ok, %Tesla.Env{status: 200} = response} -> {:ok, build_proponent(response.body["data"])}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
@@ -51,6 +38,35 @@ defmodule HttpClients.Underwriter do
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp build_proponent(proponent) do
+    %Proponent{
+      id: proponent["id"],
+      birthdate: proponent["birthdate"],
+      email: proponent["email"],
+      cpf: proponent["cpf"],
+      name: proponent["name"],
+      proposal_id: proponent["proposal_id"],
+      added_by_proponent: proponent["added_by_proponent"]
+    }
+  end
+
+  @spec update_proposal(Tesla.Client.t(), Proposal.t()) :: {:error, any} | {:ok, Proposal.t()}
+  def update_proposal(%Tesla.Client{} = client, %Proposal{} = proposal) do
+    case Tesla.put(client, "/v1/proposals/#{proposal.id}", proposal) do
+      {:ok, %Tesla.Env{status: 200} = response} -> {:ok, build_proposal(response.body["data"])}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp build_proposal(proposal) do
+    %Proposal{
+      id: proposal["id"],
+      sales_stage: proposal["sales_stage"],
+      lost_reason: proposal["lost_reason"]
+    }
   end
 
   @spec client(String.t(), String.t(), String.t()) :: Tesla.Client.t()

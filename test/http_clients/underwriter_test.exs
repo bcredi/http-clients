@@ -3,7 +3,7 @@ defmodule HttpClients.UnderwriterTest do
   import Tesla.Mock
 
   alias HttpClients.Underwriter
-  alias HttpClients.Underwriter.Proponent
+  alias HttpClients.Underwriter.{Proponent, Proposal}
 
   @base_url "http://bcredi.com"
   @client_id "client-id"
@@ -169,6 +169,47 @@ defmodule HttpClients.UnderwriterTest do
                Underwriter.remove_proponent(client(), proponent)
 
       assert response_body == %{"errors" => %{"detail" => "Not Found"}}
+    end
+  end
+
+  describe "update_proposal/2" do
+    test "returns a proposal" do
+      proposal_id = UUID.uuid4()
+      sales_stage = "qualified"
+      proposal = %Proposal{id: proposal_id, sales_stage: sales_stage}
+      proposal_url = "#{@base_url}/v1/proposals/#{proposal_id}"
+
+      mock(fn %{method: :put, url: ^proposal_url} ->
+        %Tesla.Env{
+          status: 200,
+          body: %{"data" => %{"id" => proposal_id, "sales_stage" => sales_stage}}
+        }
+      end)
+
+      assert Underwriter.update_proposal(client(), proposal) == {:ok, proposal}
+    end
+
+    test "returns error when payload is invalid" do
+      proposal_id = UUID.uuid4()
+      proposal = %Proposal{id: proposal_id}
+      proposal_url = "#{@base_url}/v1/proposals/#{proposal_id}"
+
+      response_body = %{"errors" => %{"sales_stage" => ["can't be blank"]}}
+      mock(fn %{method: :put, url: ^proposal_url} -> json(response_body, status: 422) end)
+
+      assert {:error, expected_response} = Underwriter.update_proposal(client(), proposal)
+      assert %Tesla.Env{body: ^response_body, status: 422} = expected_response
+    end
+
+    test "returns error when service is unavailable" do
+      proposal_id = UUID.uuid4()
+      sales_stage = "qualified"
+      proposal = %Proposal{id: proposal_id, sales_stage: sales_stage}
+      proposal_url = "#{@base_url}/v1/proposals/#{proposal_id}"
+
+      mock(fn %{method: :put, url: ^proposal_url} -> {:error, :timeout} end)
+
+      assert Underwriter.update_proposal(client(), proposal) == {:error, :timeout}
     end
   end
 
