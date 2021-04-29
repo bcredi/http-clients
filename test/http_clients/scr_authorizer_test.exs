@@ -35,12 +35,11 @@ defmodule HttpClients.ScrAuthorizerTest do
   end
 
   describe "create_proponent_authorization/2" do
-    @term_of_use_document_path "#{File.cwd!()}/test/assets/test.pdf"
     @proponent_authorization %ProponentAuthorization{
       proponent_id: UUID.uuid4(),
       user_agent: "some user agent",
       ip: "8.8.8.8",
-      term_of_use_document_path: @term_of_use_document_path
+      term_of_use_document_path: "#{File.cwd!()}/test/assets/test.pdf"
     }
 
     test "creates proponent authorization" do
