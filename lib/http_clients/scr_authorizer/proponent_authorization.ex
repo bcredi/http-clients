@@ -6,9 +6,9 @@ defmodule HttpClients.ScrAuthorizer.ProponentAuthorization do
           proponent_id: UUID.t(),
           user_agent: String.t(),
           ip: String.t(),
-          term_of_use_document: binary()
+          term_of_use_document_path: String.t()
         }
 
   @derive Jason.Encoder
-  defstruct ~w(id proponent_id user_agent ip term_of_use_document)a
+  defstruct ~w(id proponent_id user_agent ip term_of_use_document_path)a
 end

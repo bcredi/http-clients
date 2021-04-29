@@ -35,12 +35,12 @@ defmodule HttpClients.ScrAuthorizerTest do
   end
 
   describe "create_proponent_authorization/2" do
-    @term_of_use_document File.read!("#{File.cwd!()}/test/assets/test.pdf")
+    @term_of_use_document_path "#{File.cwd!()}/test/assets/test.pdf"
     @proponent_authorization %ProponentAuthorization{
       proponent_id: UUID.uuid4(),
       user_agent: "some user agent",
       ip: "8.8.8.8",
-      term_of_use_document: @term_of_use_document
+      term_of_use_document_path: @term_of_use_document_path
     }
 
     test "creates proponent authorization" do
@@ -50,7 +50,7 @@ defmodule HttpClients.ScrAuthorizerTest do
       expected_authorization =
         @proponent_authorization
         |> Map.put(:id, authorization_id)
-        |> Map.put(:term_of_use_document, nil)
+        |> Map.put(:term_of_use_document_path, nil)
 
       mock(fn %{method: :post, body: %Tesla.Multipart{}, url: ^proponent_authorization_url} ->
         json(%{data: expected_authorization}, status: 201)
@@ -61,12 +61,12 @@ defmodule HttpClients.ScrAuthorizerTest do
     end
 
     test "returns error when authorization doesn't has some required value" do
-      required_fields = ~w(proponent_id user_agent ip term_of_use_document)a
+      required_fields = ~w(proponent_id user_agent ip term_of_use_document_path)a
 
       Enum.each(required_fields, fn required_field ->
         authorization = Map.put(@proponent_authorization, required_field, nil)
 
-        assert_raise ArgumentError, "nil is not a supported multipart value.", fn ->
+        assert_raise RuntimeError, "#{required_field} can't be nil", fn ->
           ScrAuthorizer.create_proponent_authorization(client(), authorization)
         end
       end)
