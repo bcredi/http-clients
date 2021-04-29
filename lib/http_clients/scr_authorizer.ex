@@ -32,7 +32,8 @@ defmodule HttpClients.ScrAuthorizer do
     |> Multipart.add_file_content(
       authorization.term_of_use_document,
       "#{authorization.proponent_id}.pdf",
-      name: "term_of_use_document"
+      name: "term_of_use_document",
+      detect_content_type: true
     )
   end
 
