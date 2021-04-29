@@ -77,7 +77,7 @@ defmodule HttpClients.ScrAuthorizerTest do
       proponent_authorization_url = "#{@base_url}/v1/proponent-authorizations"
       response_body = %{"errors" => %{"ip" => "is invalid"}}
 
-      mock(fn %{method: :post, url: ^proponent_authorization_url} ->
+      mock(fn %{method: :post, body: %Tesla.Multipart{}, url: ^proponent_authorization_url} ->
         json(response_body, status: 422)
       end)
 
