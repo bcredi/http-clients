@@ -3,6 +3,7 @@ defmodule HttpClients.ScrAuthorizer do
   Client for SCR Authorizer calls
   """
   alias HttpClients.ScrAuthorizer.ProponentAuthorization
+  alias Tesla.Multipart
 
   @spec create_proponent_authorization(Tesla.Client.t(), ProponentAuthorization.t()) ::
           {:error, any} | {:ok, Proponent.t()}
@@ -10,7 +11,7 @@ defmodule HttpClients.ScrAuthorizer do
         %Tesla.Client{} = client,
         %ProponentAuthorization{} = authorization
       ) do
-    case Tesla.post(client, "/v1/proponent-authorizations", authorization) do
+    case Tesla.post(client, "/v1/proponent-authorizations", build_payload(authorization)) do
       {:ok, %Tesla.Env{status: 201} = response} ->
         {:ok, build_proponent_authorization(response.body["data"])}
 
@@ -22,7 +23,20 @@ defmodule HttpClients.ScrAuthorizer do
     end
   end
 
-  defp build_proponent_authorization(authorization) do
+  defp build_payload(%ProponentAuthorization{} = authorization) do
+    Multipart.new()
+    |> Multipart.add_content_type_param("charset=utf-8")
+    |> Multipart.add_field("proponent_id", authorization.proponent_id)
+    |> Multipart.add_field("user_agent", authorization.user_agent)
+    |> Multipart.add_field("ip", authorization.ip)
+    |> Multipart.add_file_content(
+      authorization.term_of_use_document,
+      "#{authorization.proponent_id}.pdf",
+      name: "term_of_use_document"
+    )
+  end
+
+  defp build_proponent_authorization(%{} = authorization) do
     %ProponentAuthorization{
       id: authorization["id"],
       proponent_id: authorization["proponent_id"],
@@ -40,7 +54,7 @@ defmodule HttpClients.ScrAuthorizer do
       Tesla.Middleware.JSON,
       {Tesla.Middleware.Headers, headers},
       {Tesla.Middleware.Retry, delay: 1_000, max_retries: 3},
-      {Tesla.Middleware.Timeout, timeout: 15_000},
+      {Tesla.Middleware.Timeout, timeout: 30_000},
       Tesla.Middleware.Logger,
       Goodies.Tesla.Middleware.RequestIdForwarder
     ]
