@@ -22,7 +22,7 @@ defmodule HttpClients.ScrAuthorizerTest do
            ]
          ]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
-        {Tesla.Middleware.Timeout, :call, [[timeout: 15_000]]},
+        {Tesla.Middleware.Timeout, :call, [[timeout: 30_000]]},
         {Tesla.Middleware.Logger, :call, [[]]},
         {Goodies.Tesla.Middleware.RequestIdForwarder, :call, [[]]}
       ]
@@ -35,16 +35,11 @@ defmodule HttpClients.ScrAuthorizerTest do
   end
 
   describe "create_proponent_authorization/2" do
-    @term_of_use_document %{
-      content_type: "application/pdf",
-      filename: "authorization-09a485d8-b952-4398-b303-4830ff205e05.pdf",
-      path: "test/support/pdf_to_upload_test.pdf"
-    }
     @proponent_authorization %ProponentAuthorization{
       proponent_id: UUID.uuid4(),
       user_agent: "some user agent",
       ip: "8.8.8.8",
-      term_of_use_document: @term_of_use_document
+      term_of_use_document_path: "#{File.cwd!()}/test/assets/test.pdf"
     }
 
     test "creates proponent authorization" do
@@ -54,9 +49,9 @@ defmodule HttpClients.ScrAuthorizerTest do
       expected_authorization =
         @proponent_authorization
         |> Map.put(:id, authorization_id)
-        |> Map.put(:term_of_use_document, nil)
+        |> Map.put(:term_of_use_document_path, nil)
 
-      mock(fn %{method: :post, url: ^proponent_authorization_url} ->
+      mock(fn %{method: :post, body: %Tesla.Multipart{}, url: ^proponent_authorization_url} ->
         json(%{data: expected_authorization}, status: 201)
       end)
 
@@ -64,18 +59,25 @@ defmodule HttpClients.ScrAuthorizerTest do
                {:ok, expected_authorization}
     end
 
-    test "returns error when authorization was not created" do
-      proponent_authorization_url = "#{@base_url}/v1/proponent-authorizations"
-      response_body = %{"errors" => %{"ip" => "can't be blank"}}
+    test "returns error when authorization doesn't have a term of use document's path" do
+      authorization = Map.put(@proponent_authorization, :term_of_use_document_path, nil)
 
-      mock(fn %{method: :post, url: ^proponent_authorization_url} ->
+      assert_raise FunctionClauseError, ~r/IO.chardata_to_string\/1/, fn ->
+        ScrAuthorizer.create_proponent_authorization(client(), authorization)
+      end
+    end
+
+    test "returns error when authorization was not created" do
+      authorization = Map.put(@proponent_authorization, :ip, "999.214.2.107")
+      proponent_authorization_url = "#{@base_url}/v1/proponent-authorizations"
+      response_body = %{"errors" => %{"ip" => "is invalid"}}
+
+      mock(fn %{method: :post, body: %Tesla.Multipart{}, url: ^proponent_authorization_url} ->
         json(response_body, status: 422)
       end)
 
-      authorization_without_ip = Map.put(@proponent_authorization, :ip, nil)
-
       assert {:error, expected_response} =
-               ScrAuthorizer.create_proponent_authorization(client(), authorization_without_ip)
+               ScrAuthorizer.create_proponent_authorization(client(), authorization)
 
       assert %Tesla.Env{body: ^response_body, status: 422} = expected_response
     end
