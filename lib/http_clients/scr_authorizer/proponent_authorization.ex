@@ -10,5 +10,6 @@ defmodule HttpClients.ScrAuthorizer.ProponentAuthorization do
         }
 
   @derive Jason.Encoder
+  @enforce_keys ~w(proponent_id user_agent ip)a
   defstruct ~w(id proponent_id user_agent ip term_of_use_document_path)a
 end

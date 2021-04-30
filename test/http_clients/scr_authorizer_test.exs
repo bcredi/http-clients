@@ -59,16 +59,11 @@ defmodule HttpClients.ScrAuthorizerTest do
                {:ok, expected_authorization}
     end
 
-    test "returns error when authorization doesn't has some required value" do
-      required_fields = ~w(proponent_id user_agent ip term_of_use_document_path)a
+    test "returns error when authorization doesn't has a term of use document's path" do
+      authorization = Map.put(@proponent_authorization, :term_of_use_document_path, nil)
 
-      Enum.each(required_fields, fn required_field ->
-        authorization = Map.put(@proponent_authorization, required_field, nil)
-
-        assert_raise RuntimeError, "#{required_field} can't be nil", fn ->
-          ScrAuthorizer.create_proponent_authorization(client(), authorization)
-        end
-      end)
+      assert ScrAuthorizer.create_proponent_authorization(client(), authorization) ==
+               {:error, "term_of_use_document_path can't be nil"}
     end
 
     test "returns error when authorization was not created" do

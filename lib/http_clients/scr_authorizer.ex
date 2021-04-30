@@ -11,34 +11,32 @@ defmodule HttpClients.ScrAuthorizer do
         %Tesla.Client{} = client,
         %ProponentAuthorization{} = authorization
       ) do
-    case Tesla.post(client, "/v1/proponent-authorizations", build_payload(authorization)) do
-      {:ok, %Tesla.Env{status: 201} = response} ->
-        {:ok, build_proponent_authorization(response.body["data"])}
-
-      {:ok, %Tesla.Env{} = response} ->
-        {:error, response}
-
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, payload} <- build_payload(authorization),
+         {:ok, %Tesla.Env{status: 201} = response} <-
+           Tesla.post(client, "/v1/proponent-authorizations", payload) do
+      {:ok, build_proponent_authorization(response.body["data"])}
+    else
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
     end
   end
 
   defp build_payload(%ProponentAuthorization{} = authorization) do
-    authorization.proponent_id || raise "proponent_id can't be nil"
-    authorization.user_agent || raise "user_agent can't be nil"
-    authorization.ip || raise "ip can't be nil"
-    authorization.term_of_use_document_path || raise "term_of_use_document_path can't be nil"
-
-    Multipart.new()
-    |> Multipart.add_content_type_param("charset=utf-8")
-    |> Multipart.add_field("proponent_id", authorization.proponent_id)
-    |> Multipart.add_field("user_agent", authorization.user_agent)
-    |> Multipart.add_field("ip", authorization.ip)
-    |> Multipart.add_file(
-      authorization.term_of_use_document_path,
-      name: "term_of_use_document",
-      detect_content_type: true
-    )
+    if is_binary(authorization.term_of_use_document_path) do
+      {:ok,
+       Multipart.new()
+       |> Multipart.add_content_type_param("charset=utf-8")
+       |> Multipart.add_field("proponent_id", authorization.proponent_id)
+       |> Multipart.add_field("user_agent", authorization.user_agent)
+       |> Multipart.add_field("ip", authorization.ip)
+       |> Multipart.add_file(
+         authorization.term_of_use_document_path,
+         name: "term_of_use_document",
+         detect_content_type: true
+       )}
+    else
+      {:error, "term_of_use_document_path can't be nil"}
+    end
   end
 
   defp build_proponent_authorization(%{} = authorization) do
