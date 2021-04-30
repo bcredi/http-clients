@@ -6,37 +6,34 @@ defmodule HttpClients.ScrAuthorizer do
   alias Tesla.Multipart
 
   @spec create_proponent_authorization(Tesla.Client.t(), ProponentAuthorization.t()) ::
-          {:error, any} | {:ok, Proponent.t()}
+          {:error, any} | {:ok, Proponent.t()} | no_return()
   def create_proponent_authorization(
         %Tesla.Client{} = client,
         %ProponentAuthorization{} = authorization
       ) do
-    with {:ok, payload} <- build_payload(authorization),
-         {:ok, %Tesla.Env{status: 201} = response} <-
-           Tesla.post(client, "/v1/proponent-authorizations", payload) do
-      {:ok, build_proponent_authorization(response.body["data"])}
-    else
-      {:ok, %Tesla.Env{} = response} -> {:error, response}
-      {:error, reason} -> {:error, reason}
+    case Tesla.post(client, "/v1/proponent-authorizations", build_payload(authorization)) do
+      {:ok, %Tesla.Env{status: 201} = response} ->
+        {:ok, build_proponent_authorization(response.body["data"])}
+
+      {:ok, %Tesla.Env{} = response} ->
+        {:error, response}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
   defp build_payload(%ProponentAuthorization{} = authorization) do
-    if is_binary(authorization.term_of_use_document_path) do
-      {:ok,
-       Multipart.new()
-       |> Multipart.add_content_type_param("charset=utf-8")
-       |> Multipart.add_field("proponent_id", authorization.proponent_id)
-       |> Multipart.add_field("user_agent", authorization.user_agent)
-       |> Multipart.add_field("ip", authorization.ip)
-       |> Multipart.add_file(
-         authorization.term_of_use_document_path,
-         name: "term_of_use_document",
-         detect_content_type: true
-       )}
-    else
-      {:error, "term_of_use_document_path can't be nil"}
-    end
+    Multipart.new()
+    |> Multipart.add_content_type_param("charset=utf-8")
+    |> Multipart.add_field("proponent_id", authorization.proponent_id)
+    |> Multipart.add_field("user_agent", authorization.user_agent)
+    |> Multipart.add_field("ip", authorization.ip)
+    |> Multipart.add_file(
+      authorization.term_of_use_document_path,
+      name: "term_of_use_document",
+      detect_content_type: true
+    )
   end
 
   defp build_proponent_authorization(%{} = authorization) do

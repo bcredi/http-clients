@@ -62,8 +62,9 @@ defmodule HttpClients.ScrAuthorizerTest do
     test "returns error when authorization doesn't has a term of use document's path" do
       authorization = Map.put(@proponent_authorization, :term_of_use_document_path, nil)
 
-      assert ScrAuthorizer.create_proponent_authorization(client(), authorization) ==
-               {:error, "term_of_use_document_path can't be nil"}
+      assert_raise FunctionClauseError, ~r/IO.chardata_to_string\/1/, fn ->
+        ScrAuthorizer.create_proponent_authorization(client(), authorization)
+      end
     end
 
     test "returns error when authorization was not created" do
