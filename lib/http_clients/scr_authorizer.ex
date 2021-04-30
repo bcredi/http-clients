@@ -11,11 +11,6 @@ defmodule HttpClients.ScrAuthorizer do
         %Tesla.Client{} = client,
         %ProponentAuthorization{} = authorization
       ) do
-    authorization.proponent_id || raise "proponent_id can't be nil"
-    authorization.user_agent || raise "user_agent can't be nil"
-    authorization.ip || raise "ip can't be nil"
-    authorization.term_of_use_document_path || raise "term_of_use_document_path can't be nil"
-
     case Tesla.post(client, "/v1/proponent-authorizations", build_payload(authorization)) do
       {:ok, %Tesla.Env{status: 201} = response} ->
         {:ok, build_proponent_authorization(response.body["data"])}
@@ -29,6 +24,11 @@ defmodule HttpClients.ScrAuthorizer do
   end
 
   defp build_payload(%ProponentAuthorization{} = authorization) do
+    authorization.proponent_id || raise "proponent_id can't be nil"
+    authorization.user_agent || raise "user_agent can't be nil"
+    authorization.ip || raise "ip can't be nil"
+    authorization.term_of_use_document_path || raise "term_of_use_document_path can't be nil"
+
     Multipart.new()
     |> Multipart.add_content_type_param("charset=utf-8")
     |> Multipart.add_field("proponent_id", authorization.proponent_id)
