@@ -29,10 +29,19 @@ defmodule HttpClients.SalesforceTokenServer do
   HttpClients.SalesforceTokenServer.update_token(MyApp.SalesforceTokenServer)
   ```
 
-  Or you can set the token:
+  Or you can get a new token and set it by yourself:
 
   ```elixir
-  HttpClients.SalesforceTokenServer.set_token(MyApp.SalesforceTokenServer, %ExForce.OAuthResponse{})
+  config = [
+    url: "https://login.salesforce.com",
+    client_id: "some client_id",
+    client_secret: "some client_secret",
+    username: "fulano@creditas.com",
+    password: "somepassword123",
+    grant_type: "password"
+  ]
+  {:ok, token} = HttpClients.SalesforceTokenServer.request_new_token(config)
+  HttpClients.SalesforceTokenServer.set_token(MyApp.SalesforceTokenServer, token)
   ```
   """
   use Agent
@@ -67,7 +76,8 @@ defmodule HttpClients.SalesforceTokenServer do
     set_token(server, token)
   end
 
-  defp request_new_token(config) do
+  @spec request_new_token(keyword()) :: {:ok, ExForce.OAuthResponse.t()} | {:error, any()}
+  def request_new_token(config) do
     {url, opts} = Keyword.pop!(config, :url)
     ExForce.OAuth.get_token(url, opts)
   end

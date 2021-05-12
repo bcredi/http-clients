@@ -50,11 +50,6 @@ defmodule HttpClients.SalesforceTokenServerTest do
       :ok
     end
 
-    test "starts the server with a valid token" do
-      pid = start_supervised!({SalesforceTokenServer, config: @config})
-      assert SalesforceTokenServer.get_token(pid) == @token
-    end
-
     test "raises error when there's no config" do
       assert_raise RuntimeError, ~r/key :config not found in: \[]/, fn ->
         start_supervised!({SalesforceTokenServer, []})
@@ -65,6 +60,11 @@ defmodule HttpClients.SalesforceTokenServerTest do
       assert_raise RuntimeError, ~r/key :url not found in: \[]/, fn ->
         start_supervised!({SalesforceTokenServer, config: []})
       end
+    end
+
+    test "starts the server with a valid token" do
+      pid = start_supervised!({SalesforceTokenServer, config: @config})
+      assert SalesforceTokenServer.get_token(pid) == @token
     end
   end
 
@@ -85,6 +85,20 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
       :ok = SalesforceTokenServer.update_token(pid)
       assert SalesforceTokenServer.get_token(pid) == expected_token
+    end
+  end
+
+  describe "request_new_token/1" do
+    test "raises error without url" do
+      {_, config} = Keyword.pop!(@config, :url)
+
+      assert_raise KeyError, ~r/key :url not found in/, fn ->
+        SalesforceTokenServer.request_new_token(config)
+      end
+    end
+
+    test "requests a new token" do
+      assert SalesforceTokenServer.request_new_token(@config) == {:ok, @token}
     end
   end
 
