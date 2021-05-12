@@ -41,7 +41,8 @@ defmodule HttpClients.SalesforceTokenServerTest do
       json(@token_response)
     end)
 
-    {:ok, pid: start_supervised!({SalesforceTokenServer, config: @config})}
+    opts = [name: SalesforceTokenServer, config: @config]
+    {:ok, pid: start_supervised!({SalesforceTokenServer, opts})}
   end
 
   describe "start_link/1" do
@@ -75,6 +76,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
   describe "get_token/1" do
     test "returns a token", %{pid: pid} do
       assert SalesforceTokenServer.get_token(pid) == @token
+      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
     end
   end
 
@@ -89,6 +91,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
       :ok = SalesforceTokenServer.update_token(pid)
       assert SalesforceTokenServer.get_token(pid) == expected_token
+      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == expected_token
     end
   end
 
@@ -111,6 +114,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
       token = %ExForce.OAuthResponse{}
       :ok = SalesforceTokenServer.set_token(pid, token)
       assert SalesforceTokenServer.get_token(pid) == token
+      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == token
     end
   end
 end
