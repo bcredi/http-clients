@@ -62,7 +62,8 @@ defmodule HttpClients.SalesforceTokenServer do
   end
 
   @doc "Request an authenticated token to Salesforce"
-  @spec request_new_token(keyword()) :: {:ok, ExForce.OAuthResponse.t()} | {:error, any()}
+  @spec request_new_token(keyword()) ::
+          {:ok, ExForce.OAuthResponse.t()} | {:error, any()} | no_return()
   def request_new_token(config) do
     {url, opts} = Keyword.pop!(config, :url)
     ExForce.OAuth.get_token(url, opts)
