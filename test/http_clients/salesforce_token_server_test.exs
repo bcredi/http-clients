@@ -64,7 +64,11 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
     test "starts the server with a valid token" do
       pid = start_supervised!({SalesforceTokenServer, config: @config})
-      assert SalesforceTokenServer.get_token(pid) == @token
+
+      Agent.get(pid, fn state ->
+        assert state[:token] == @token
+        assert state[:config] == @config
+      end)
     end
   end
 
