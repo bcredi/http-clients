@@ -47,7 +47,7 @@ defmodule HttpClients.SalesforceTokenServer do
   use Agent
   require Logger
 
-  defguard is_token_server(server) when is_pid(server) or is_atom(server)
+  defguardp is_token_server(server) when is_pid(server) or is_atom(server)
 
   @spec start_link(keyword()) :: {:ok, pid()} | {:error, any()} | no_return()
   def start_link(opts) when is_list(opts) do
