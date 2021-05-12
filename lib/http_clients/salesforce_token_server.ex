@@ -47,7 +47,7 @@ defmodule HttpClients.SalesforceTokenServer do
   use Agent
   require Logger
 
-  defguard is_server(server) when is_pid(server) or is_atom(server)
+  defguard is_token_server(server) when is_pid(server) or is_atom(server)
 
   @spec start_link(keyword()) :: {:ok, pid()} | {:error, any()} | no_return()
   def start_link(opts) when is_list(opts) do
@@ -73,13 +73,13 @@ defmodule HttpClients.SalesforceTokenServer do
 
   @doc "Gets a token from the given TokenServer"
   @spec get_token(pid()) :: ExForce.OAuthResponse.t()
-  def get_token(server) when is_server(server) do
+  def get_token(server) when is_token_server(server) do
     Agent.get(server, & &1[:token])
   end
 
   @doc "Request an authenticated token to Salesforce and set it to the given TokenServer"
   @spec update_token(pid()) :: :ok | no_return()
-  def update_token(server) when is_server(server) do
+  def update_token(server) when is_token_server(server) do
     Logger.info("Updating the salesforce token")
     config = Agent.get(server, & &1[:config])
     {:ok, token} = request_new_token(config)
@@ -88,7 +88,7 @@ defmodule HttpClients.SalesforceTokenServer do
 
   @doc "Set a new token for the given TokenServer"
   @spec set_token(pid(), ExForce.OAuthResponse.t()) :: :ok
-  def set_token(server, %ExForce.OAuthResponse{} = new_token) when is_server(server) do
+  def set_token(server, %ExForce.OAuthResponse{} = new_token) when is_token_server(server) do
     Logger.info("Setting new token for #{inspect(server)}")
     Agent.update(server, &Map.put(&1, :token, new_token))
   end
