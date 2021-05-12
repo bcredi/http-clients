@@ -47,7 +47,7 @@ defmodule HttpClients.SalesforceTokenServer do
   use Agent
   require Logger
 
-  @spec start_link(keyword()) :: {:ok, pid()} | {:error, any()}
+  @spec start_link(keyword()) :: {:ok, pid()} | {:error, any()} | no_return()
   def start_link(opts) when is_list(opts) do
     {config, opts} = Keyword.pop!(opts, :config)
 
@@ -75,7 +75,7 @@ defmodule HttpClients.SalesforceTokenServer do
   end
 
   @doc "Request an authenticated token to Salesforce and set it to the given TokenServer"
-  @spec update_token(pid()) :: :ok
+  @spec update_token(pid()) :: :ok | no_return()
   def update_token(server) do
     Logger.info("Updating the salesforce token")
     config = Agent.get(server, & &1[:config])
