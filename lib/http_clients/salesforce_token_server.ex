@@ -80,7 +80,7 @@ defmodule HttpClients.SalesforceTokenServer do
   @doc "Request an authenticated token to Salesforce and set it to the given TokenServer"
   @spec update_token(pid()) :: :ok | no_return()
   def update_token(server) when is_token_server(server) do
-    Logger.info("Updating the salesforce token")
+    Logger.info("Updating Salesforce token for #{inspect(server)}")
     config = Agent.get(server, & &1[:config])
     {:ok, token} = request_new_token(config)
     set_token(server, token)
@@ -89,7 +89,7 @@ defmodule HttpClients.SalesforceTokenServer do
   @doc "Set a new token for the given TokenServer"
   @spec set_token(pid(), ExForce.OAuthResponse.t()) :: :ok
   def set_token(server, %ExForce.OAuthResponse{} = new_token) when is_token_server(server) do
-    Logger.info("Setting new token for #{inspect(server)}")
+    Logger.info("Setting new Salesforce token for #{inspect(server)}")
     Agent.update(server, &Map.put(&1, :token, new_token))
   end
 end
