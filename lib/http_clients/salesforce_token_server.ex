@@ -61,6 +61,13 @@ defmodule HttpClients.SalesforceTokenServer do
     )
   end
 
+  @doc "Request an authenticated token to Salesforce"
+  @spec request_new_token(keyword()) :: {:ok, ExForce.OAuthResponse.t()} | {:error, any()}
+  def request_new_token(config) do
+    {url, opts} = Keyword.pop!(config, :url)
+    ExForce.OAuth.get_token(url, opts)
+  end
+
   @doc "Gets a token from the given TokenServer"
   @spec get_token(pid()) :: ExForce.OAuthResponse.t()
   def get_token(server) do
@@ -74,13 +81,6 @@ defmodule HttpClients.SalesforceTokenServer do
     config = Agent.get(server, & &1[:config])
     {:ok, token} = request_new_token(config)
     set_token(server, token)
-  end
-
-  @doc "Request an authenticated token to Salesforce"
-  @spec request_new_token(keyword()) :: {:ok, ExForce.OAuthResponse.t()} | {:error, any()}
-  def request_new_token(config) do
-    {url, opts} = Keyword.pop!(config, :url)
-    ExForce.OAuth.get_token(url, opts)
   end
 
   @doc "Set a new token for the given TokenServer"
