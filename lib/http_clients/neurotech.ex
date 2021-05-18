@@ -51,6 +51,7 @@ defmodule HttpClients.Neurotech do
         opts \\ []
       )
       when is_integer(transaction_id) and is_list(opts) do
+    bacen_source = Keyword.get(opts, :bacen_source)
     base_date = Keyword.get(opts, :base_date)
 
     inputs =
@@ -58,6 +59,7 @@ defmodule HttpClients.Neurotech do
         "PROP_POLITICA" => "BACEN_SCR",
         "PROP_BACEN_CPFCNPJ" => person.cpf
       }
+      |> put_bacen_source(bacen_source)
       |> put_base_date(base_date)
 
     request = %Request{
@@ -76,6 +78,13 @@ defmodule HttpClients.Neurotech do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp put_bacen_source(inputs, bacen_source)
+  defp put_bacen_source(inputs, nil), do: inputs
+
+  defp put_bacen_source(inputs, bacen_source) when is_binary(bacen_source) do
+    Map.put(inputs, "PROP_BACEN_FONTE", bacen_source)
   end
 
   defp put_base_date(inputs, base_date)

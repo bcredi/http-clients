@@ -131,6 +131,33 @@ defmodule HttpClients.NeurotechTest do
                opts
              ) == {:ok, expected_analysis}
     end
+
+    test "computes score with bacen_source option" do
+      person = %Neurotech.Person{cpf: "65661563051"}
+      opts = [bacen_source: "SOME_BACEN_SOURCE"]
+
+      expected_analysis = %Score{
+        score: 444,
+        positive_analysis: "- Sem registro de vencidos no histórico.\r\n",
+        negative_analysis: "- LIMITE DE CRÉDITO abaixo de R$1.000,00 no histórico.\r\n"
+      }
+
+      response_body = bacen_response(:success)
+
+      mock(fn %{url: "/submit", method: :post, body: body} ->
+        assert String.match?(body, ~r/PROP_BACEN_FONTE/)
+        assert String.match?(body, ~r/SOME_BACEN_SOURCE/)
+        json(response_body)
+      end)
+
+      assert Neurotech.compute_bacen_score(
+               client(),
+               credentials(),
+               person,
+               @transaction_id,
+               opts
+             ) == {:ok, expected_analysis}
+    end
   end
 
   describe "client/1" do
