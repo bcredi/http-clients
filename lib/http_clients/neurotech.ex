@@ -80,19 +80,22 @@ defmodule HttpClients.Neurotech do
     end
   end
 
-  defp put_bacen_source(inputs, bacen_source)
-  defp put_bacen_source(inputs, nil), do: inputs
-
-  defp put_bacen_source(inputs, bacen_source) when is_binary(bacen_source) do
-    Map.put(inputs, "PROP_BACEN_FONTE", bacen_source)
+  defp put_bacen_source(inputs, bacen_source) do
+    cond do
+      is_nil(bacen_source) -> inputs
+      is_binary(bacen_source) -> Map.put(inputs, "PROP_BACEN_FONTE", bacen_source)
+    end
   end
 
-  defp put_base_date(inputs, base_date)
-  defp put_base_date(inputs, nil), do: inputs
+  defp put_base_date(inputs, base_date) do
+    cond do
+      is_nil(base_date) ->
+        inputs
 
-  defp put_base_date(inputs, %Date{} = base_date) do
-    base_date = Calendar.strftime(base_date, "%d/%m/%Y")
-    Map.put(inputs, "PROP_BACEN_DATA_BASE", base_date)
+      %Date{} = base_date ->
+        base_date = Calendar.strftime(base_date, "%d/%m/%Y")
+        Map.put(inputs, "PROP_BACEN_DATA_BASE", base_date)
+    end
   end
 
   defp parse_bacen_analysis(bacen_analysis) do
