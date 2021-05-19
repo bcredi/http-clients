@@ -51,6 +51,7 @@ defmodule HttpClients.Neurotech do
         opts \\ []
       )
       when is_integer(transaction_id) and is_list(opts) do
+    bacen_source = Keyword.get(opts, :bacen_source)
     base_date = Keyword.get(opts, :base_date)
 
     inputs =
@@ -58,6 +59,7 @@ defmodule HttpClients.Neurotech do
         "PROP_POLITICA" => "BACEN_SCR",
         "PROP_BACEN_CPFCNPJ" => person.cpf
       }
+      |> put_bacen_source(bacen_source)
       |> put_base_date(base_date)
 
     request = %Request{
@@ -78,12 +80,22 @@ defmodule HttpClients.Neurotech do
     end
   end
 
-  defp put_base_date(inputs, base_date)
-  defp put_base_date(inputs, nil), do: inputs
+  defp put_bacen_source(inputs, bacen_source) do
+    cond do
+      is_nil(bacen_source) -> inputs
+      is_binary(bacen_source) -> Map.put(inputs, "PROP_BACEN_FONTE", bacen_source)
+    end
+  end
 
-  defp put_base_date(inputs, %Date{} = base_date) do
-    base_date = Calendar.strftime(base_date, "%d/%m/%Y")
-    Map.put(inputs, "PROP_BACEN_DATA_BASE", base_date)
+  defp put_base_date(inputs, base_date) do
+    cond do
+      is_nil(base_date) ->
+        inputs
+
+      %Date{} = base_date ->
+        base_date = Calendar.strftime(base_date, "%d/%m/%Y")
+        Map.put(inputs, "PROP_BACEN_DATA_BASE", base_date)
+    end
   end
 
   defp parse_bacen_analysis(bacen_analysis) do
