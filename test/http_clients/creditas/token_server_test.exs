@@ -82,6 +82,7 @@ defmodule HttpClients.Creditas.TokenServerTest do
 
     test "requests a new token" do
       assert TokenServer.request_new_token(@config) == {:ok, @token}
+      assert_called(DateTime.utc_now())
     end
   end
 
@@ -90,6 +91,80 @@ defmodule HttpClients.Creditas.TokenServerTest do
       assert TokenServer.get_token(pid) == @token
       assert TokenServer.get_token(TokenServer) == @token
     end
+  end
+
+  describe "get_refreshed_token/2" do
+    @refreshed_access_token "some access_token"
+    @refreshed_token_response Map.put(@token_response, "access_token", @refreshed_access_token)
+    @seconds_before_refresh 30
+
+    test "returns error when update fails", %{pid: pid} do
+      error_response = {:error, :timeout}
+      mock_global(fn %{method: :post, url: @creditas_url} -> error_response end)
+
+      expired_seconds = @token_response["expires_in"] + 1
+      expired_datetime = DateTime.add(@datetime_now, expired_seconds, :second)
+
+      with_mock DateTime, [:passthrough], utc_now: fn -> expired_datetime end do
+        assert TokenServer.get_refreshed_token(pid, @seconds_before_refresh) == error_response
+
+        assert TokenServer.get_refreshed_token(TokenServer, @seconds_before_refresh) ==
+                 error_response
+
+        assert_called(DateTime.utc_now())
+      end
+    end
+
+    test "returns a token", %{pid: pid} do
+      access_token = @token.access_token
+
+      assert %Token{access_token: ^access_token} =
+               change_current_time_to_get_refreshed_token(
+                 pid,
+                 @token_response["expires_in"] - @seconds_before_refresh - 1
+               )
+    end
+
+    test "refreshes a token when current time is smaller than token expiration", %{pid: pid} do
+      assert %Token{access_token: @refreshed_access_token} =
+               change_current_time_to_get_refreshed_token(
+                 pid,
+                 @token_response["expires_in"] - @seconds_before_refresh
+               )
+    end
+
+    test "refreshes a token when current time is equal as token expiration", %{pid: pid} do
+      assert %Token{access_token: @refreshed_access_token} =
+               change_current_time_to_get_refreshed_token(
+                 pid,
+                 @token_response["expires_in"]
+               )
+    end
+
+    test "refreshes a token when current time is bigger than token expiration", %{pid: pid} do
+      assert %Token{access_token: @refreshed_access_token} =
+               change_current_time_to_get_refreshed_token(
+                 pid,
+                 @token_response["expires_in"] + 1
+               )
+    end
+
+    defp change_current_time_to_get_refreshed_token(pid, add_seconds_to_datetime_now) do
+      mock_global(fn %{method: :post, url: @creditas_url} ->
+        json(@refreshed_token_response, status: 201)
+      end)
+
+      current_datetime = DateTime.add(@datetime_now, add_seconds_to_datetime_now, :second)
+
+      with_mock DateTime, [:passthrough], utc_now: fn -> current_datetime end do
+        token = TokenServer.get_refreshed_token(pid, @seconds_before_refresh)
+        assert ^token = TokenServer.get_refreshed_token(TokenServer, @seconds_before_refresh)
+        assert_called(DateTime.utc_now())
+        token
+      end
+    end
+  end
+
   describe "set_token/2" do
     test "stores a token", %{pid: pid} do
       token = %Token{access_token: "123", expires_at: DateTime.utc_now()}

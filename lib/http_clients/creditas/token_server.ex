@@ -58,6 +58,25 @@ defmodule HttpClients.Creditas.TokenServer do
     Agent.get(server, & &1[:token])
   end
 
+  @doc "Gets a refreshed token from the given TokenServer"
+  @spec get_refreshed_token(atom() | pid(), integer()) :: map()
+  def get_refreshed_token(server, seconds_before_refresh)
+      when is_token_server(server) and seconds_before_refresh >= 0 do
+    token = Agent.get(server, & &1[:token])
+
+    if update_token?(token, seconds_before_refresh) do
+      with :ok <- update_token(server), do: Agent.get(server, & &1[:token])
+    else
+      token
+    end
+  end
+
+  defp update_token?(%Token{expires_at: expires_at}, seconds_before_refresh) do
+    now = DateTime.utc_now()
+    diff_seconds = DateTime.diff(expires_at, now)
+    0 > diff_seconds or diff_seconds <= seconds_before_refresh
+  end
+
   @doc "Set a new token for the given TokenServer"
   @spec set_token(atom() | pid(), Token.t()) :: :ok
   def set_token(server, %Token{} = new_token) when is_token_server(server) do
