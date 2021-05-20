@@ -192,11 +192,8 @@ defmodule HttpClients.Creditas.TokenServerTest do
         json(token_response, status: 201)
       end)
 
-      :ok = TokenServer.update_token(pid)
-      assert TokenServer.get_token(pid) == expected_token
-
-      :ok = TokenServer.update_token(TokenServer)
-      assert TokenServer.get_token(TokenServer) == expected_token
+      assert TokenServer.update_token(pid) == {:ok, expected_token}
+      assert TokenServer.update_token(TokenServer) == {:ok, expected_token}
     end
   end
 end

@@ -65,7 +65,7 @@ defmodule HttpClients.Creditas.TokenServer do
     token = Agent.get(server, & &1[:token])
 
     if update_token?(token, seconds_before_refresh) do
-      with :ok <- update_token(server), do: Agent.get(server, & &1[:token])
+      with {:ok, token} <- update_token(server), do: token
     else
       token
     end
@@ -89,6 +89,10 @@ defmodule HttpClients.Creditas.TokenServer do
   def update_token(server) when is_token_server(server) do
     Logger.info("Updating Creditas token for #{inspect(server)}")
     config = Agent.get(server, & &1[:config])
-    with {:ok, token} <- request_new_token(config), do: set_token(server, token)
+
+    with {:ok, token} <- request_new_token(config),
+         :ok <- set_token(server, token) do
+      {:ok, token}
+    end
   end
 end
