@@ -2,6 +2,8 @@ defmodule HttpClients.Creditas.TokenServer do
   use Agent
   require Logger
 
+  alias HttpClients.Creditas.Token
+
   defguardp is_token_server(server) when is_pid(server) or is_atom(server)
 
   @spec start_link(keyword()) :: {:ok, pid()} | {:error, any()} | no_return()
@@ -19,7 +21,8 @@ defmodule HttpClients.Creditas.TokenServer do
   end
 
   @doc "Request an authenticated token to Creditas"
-  @spec request_new_token(keyword()) :: {:ok, map()} | {:error, any()}
+  @spec request_new_token([{:credentials, map} | {:url, binary}, ...]) ::
+          {:error, any} | {:ok, Token.t()}
   def request_new_token(url: url, credentials: credentials)
       when is_binary(url) and is_map(credentials) do
     case Tesla.post(creditas_client(), url, credentials) do
@@ -43,7 +46,7 @@ defmodule HttpClients.Creditas.TokenServer do
     now = DateTime.utc_now()
     expires_at = DateTime.add(now, payload["expires_in"], :second)
 
-    %HttpClients.Creditas.Token{
+    %Token{
       access_token: payload["access_token"],
       expires_at: expires_at
     }
@@ -53,5 +56,20 @@ defmodule HttpClients.Creditas.TokenServer do
   @spec get_token(atom() | pid()) :: map()
   def get_token(server) when is_token_server(server) do
     Agent.get(server, & &1[:token])
+  end
+
+  @doc "Set a new token for the given TokenServer"
+  @spec set_token(atom() | pid(), Token.t()) :: :ok
+  def set_token(server, %Token{} = new_token) when is_token_server(server) do
+    Logger.info("Setting new Creditas token for #{inspect(server)}")
+    Agent.update(server, &Map.put(&1, :token, new_token))
+  end
+
+  @doc "Request an authenticated token to Creditas and set it to the given TokenServer"
+  @spec update_token(atom() | pid()) :: :ok | no_return()
+  def update_token(server) when is_token_server(server) do
+    Logger.info("Updating Creditas token for #{inspect(server)}")
+    config = Agent.get(server, & &1[:config])
+    with {:ok, token} <- request_new_token(config), do: set_token(server, token)
   end
 end

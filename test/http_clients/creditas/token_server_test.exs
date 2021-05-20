@@ -90,5 +90,38 @@ defmodule HttpClients.Creditas.TokenServerTest do
       assert TokenServer.get_token(pid) == @token
       assert TokenServer.get_token(TokenServer) == @token
     end
+  describe "set_token/2" do
+    test "stores a token", %{pid: pid} do
+      token = %Token{access_token: "123", expires_at: DateTime.utc_now()}
+
+      :ok = TokenServer.set_token(pid, token)
+      assert TokenServer.get_token(pid) == token
+
+      :ok = TokenServer.set_token(TokenServer, token)
+      assert TokenServer.get_token(TokenServer) == token
+    end
+  end
+
+  describe "update_token/1" do
+    test "returns error when update fails", %{pid: pid} do
+      mock_global(fn %{method: :post, url: @creditas_url} -> {:error, :timeout} end)
+      assert TokenServer.update_token(pid) == {:error, :timeout}
+      assert TokenServer.update_token(TokenServer) == {:error, :timeout}
+    end
+
+    test "updates a token", %{pid: pid} do
+      token_response = Map.put(@token_response, "access_token", "some access_token")
+      expected_token = Map.put(@token, :access_token, "some access_token")
+
+      mock_global(fn %{method: :post, url: @creditas_url} ->
+        json(token_response, status: 201)
+      end)
+
+      :ok = TokenServer.update_token(pid)
+      assert TokenServer.get_token(pid) == expected_token
+
+      :ok = TokenServer.update_token(TokenServer)
+      assert TokenServer.get_token(TokenServer) == expected_token
+    end
   end
 end
