@@ -11,8 +11,7 @@ defmodule HttpClients.Creditas.PersonApi do
       Tesla.Middleware.JSON,
       {Tesla.Middleware.Retry, delay: 1_000, max_retries: 3},
       {Tesla.Middleware.Timeout, timeout: 120_000},
-      Tesla.Middleware.Logger,
-      Goodies.Tesla.Middleware.RequestIdForwarder
+      Tesla.Middleware.Logger
     ]
 
     Tesla.client(middlewares)

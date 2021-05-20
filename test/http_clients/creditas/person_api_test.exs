@@ -19,13 +19,11 @@ defmodule HttpClients.Creditas.PersonApiTest do
         {Tesla.Middleware.JSON, :call, [[]]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 120_000]]},
-        {Tesla.Middleware.Logger, :call, [[]]},
-        {Goodies.Tesla.Middleware.RequestIdForwarder, :call, [[]]}
+        {Tesla.Middleware.Logger, :call, [[]]}
       ]
 
       client = PersonApi.client(@base_url, @bearer_token)
-      assert %Tesla.Client{} = client
-      assert client.pre == expected_configs
+      assert %Tesla.Client{pre: ^expected_configs} = client
     end
   end
 end
