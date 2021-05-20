@@ -1,4 +1,6 @@
 defmodule HttpClients.Creditas.PersonApi do
+  @moduledoc false
+
   @spec client(String.t(), String.t()) :: Tesla.Client.t()
   def client(base_url, bearer_token) do
     headers = headers(bearer_token)
