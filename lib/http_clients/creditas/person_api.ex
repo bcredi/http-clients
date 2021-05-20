@@ -1,6 +1,35 @@
 defmodule HttpClients.Creditas.PersonApi do
   @moduledoc false
 
+  alias HttpClients.Creditas.PersonApi.{MainDocument, Person}
+
+  @spec get_person(Tesla.Client.t(), String.t()) :: Person.t()
+  def get_person(client, cpf) do
+    query = "mainDocument.code=#{cpf}"
+
+    case Tesla.get(client, "/persons", query: query) do
+      {:ok, %Tesla.Env{status: 200, body: attrs}} ->
+        {:ok, build_person(attrs)}
+
+        # {:ok, %Tesla.Env{} = response} ->
+        #   {:error, response}
+
+        # {:error, reason} ->
+        #   {:error, reason}
+    end
+  end
+
+  defp build_person(attrs) do
+    %Person{
+      fullName: attrs["fullName"],
+      birthDate: attrs["birthDate"],
+      mainDocument: %MainDocument{
+        type: attrs["mainDocument"]["type"],
+        code: attrs["mainDocument"]["code"]
+      }
+    }
+  end
+
   @spec client(String.t(), String.t()) :: Tesla.Client.t()
   def client(base_url, bearer_token) do
     headers = headers(bearer_token)
