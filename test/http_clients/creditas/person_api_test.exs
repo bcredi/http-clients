@@ -4,7 +4,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
   import Tesla.Mock
 
   alias HttpClients.Creditas.PersonApi
-  alias HttpClients.Creditas.PersonApi.{MainDocument, Person}
+  alias HttpClients.Creditas.PersonApi.{Address, Contact, MainDocument, Person}
 
   describe "client/2" do
     @base_url "https://api.creditas.io/persons"
@@ -29,33 +29,87 @@ defmodule HttpClients.Creditas.PersonApiTest do
     end
   end
 
-  describe "get_person/?" do
+  describe "get_person_by_cpf/?" do
+    @client %Tesla.Client{}
     @cpf "45658265002"
+    @query "mainDocument.code=#{@cpf}"
     @response_body %{
       "fullName" => "requested",
       "birthDate" => "10-10-1990",
       "mainDocument" => %{
         "type" => "CPF",
         "code" => @cpf
-      }
+      },
+      "contacts" => [
+        %{
+          "channel" => "PHONE",
+          "code" => "55998788454",
+          "type" => "PERSONAL"
+        },
+        %{
+          "channel" => "PHONE",
+          "code" => "55998788888",
+          "type" => "PERSONAL"
+        }
+      ],
+      "addresses" => [
+        %{
+          "type" => "BILLING",
+          "country" => "BR",
+          "street" => "Av de casa",
+          "number" => "1010",
+          "zipCode" => "81810110",
+          "neighborhood" => "Xaxim",
+          "complement" => "some complement"
+        }
+      ]
     }
 
     test "returns person" do
-      query = "mainDocument.code=#{@cpf}"
-
-      mock(fn %{url: "/persons", method: :get, query: ^query} ->
+      mock(fn %{url: "/persons", method: :get, query: @query} ->
         %Tesla.Env{status: 200, body: @response_body}
       end)
 
-      assert {:ok,
-              %Person{
-                fullName: "requested",
-                birthDate: "10-10-1990",
-                mainDocument: %MainDocument{
-                  type: "CPF",
-                  code: @cpf
-                }
-              }} == PersonApi.get_person(%Tesla.Client{}, @cpf)
+      expected_response = %Person{
+        fullName: "requested",
+        birthDate: "10-10-1990",
+        mainDocument: %MainDocument{type: "CPF", code: @cpf},
+        contacts: [
+          %HttpClients.Creditas.PersonApi.Contact{
+            channel: "PHONE",
+            code: "55998788888",
+            type: "PERSONAL"
+          },
+          %HttpClients.Creditas.PersonApi.Contact{
+            channel: "PHONE",
+            code: "55998788454",
+            type: "PERSONAL"
+          }
+        ],
+        addresses: [
+          %Address{
+            type: "BILLING",
+            country: "BR",
+            street: "Av de casa",
+            number: "1010",
+            zipCode: "81810110",
+            neighborhood: "Xaxim",
+            complement: "some complement"
+          }
+        ]
+      }
+
+      assert {:ok, expected_response} == PersonApi.get_person(@client, @cpf)
+    end
+
+    test "returns error when response is not successfull" do
+      mock(fn %{url: "/persons", method: :get, query: @query} -> %Tesla.Env{status: 400} end)
+      assert {:error, %Tesla.Env{status: 400}} == PersonApi.get_person(@client, @cpf)
+    end
+
+    test "returns error when does not respond" do
+      mock(fn %{url: "/persons", method: :get, query: @query} -> {:error, :timeout} end)
+      assert {:error, :timeout} == PersonApi.get_person(@client, @cpf)
     end
   end
 end
