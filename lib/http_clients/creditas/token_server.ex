@@ -20,22 +20,14 @@ defmodule HttpClients.Creditas.TokenServer do
 
   @doc "Request an authenticated token to Creditas"
   @spec request_new_token(keyword()) :: {:ok, map()} | {:error, any()}
-  def request_new_token(config) when is_list(config) do
-    cond do
-      not is_binary(config[:url]) ->
-        {:error, ":url is missing!"}
-
-      not is_map(config[:credentials]) ->
-        {:error, ":credentials is missing!"}
-
-      true ->
-        case Tesla.post(creditas_client(), config[:url], config[:credentials]) do
+  def request_new_token(url: url, credentials: credentials)
+      when is_binary(url) and is_map(credentials) do
+    case Tesla.post(creditas_client(), url, credentials) do
           {:ok, %Tesla.Env{status: 201, body: token}} -> {:ok, build_token(token)}
           {:ok, %Tesla.Env{} = response} -> {:error, response}
           {:error, reason} -> {:error, reason}
         end
     end
-  end
 
   defp creditas_client do
     middleware = [

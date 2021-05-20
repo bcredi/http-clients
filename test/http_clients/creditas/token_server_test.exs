@@ -66,16 +66,6 @@ defmodule HttpClients.Creditas.TokenServerTest do
   end
 
   describe "request_new_token/1" do
-    test "returns error without url" do
-      config = Keyword.delete(@config, :url)
-      assert TokenServer.request_new_token(config) == {:error, ":url is missing!"}
-    end
-
-    test "returns error without credentials" do
-      config = Keyword.delete(@config, :credentials)
-      assert TokenServer.request_new_token(config) == {:error, ":credentials is missing!"}
-    end
-
     test "fails to request a new token" do
       mock_global(fn %{method: :post, url: @creditas_url} -> {:error, :timeout} end)
       assert TokenServer.request_new_token(@config) == {:error, :timeout}
