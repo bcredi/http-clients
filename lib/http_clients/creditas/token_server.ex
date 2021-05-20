@@ -1,4 +1,56 @@
 defmodule HttpClients.Creditas.TokenServer do
+  @moduledoc """
+  An agent that stores a valid Creditas API token.
+
+  First setup it on your `application.ex`, e.g.:
+
+  ```elixir
+  config = [
+    url: "https://auth-staging.creditas.com.br/api/internal_clients/tokens",
+    credentials: %{
+      username: "someuser",
+      password: "password123",
+      grant_type: "password"
+    }
+  ]
+  children = [{HttpClients.Creditas.TokenServer, name: MyApp.CreditasTokenServer, config: config}]
+  Supervisor.start_link(children, name: MyApp.Supervisor)
+  ```
+
+  Then you can retrieve the token:
+
+  ```elixir
+  HttpClients.Creditas.TokenServer.get_token(MyApp.CreditasTokenServer)
+
+  Or you can retrieve the refreshed token if it's expired (or almost):
+
+  ```elixir
+  # get token and refresh it if is expired or at most 120 seconds before expiring
+  HttpClients.Creditas.TokenServer.get_refreshed_token(MyApp.CreditasTokenServer, 120)
+  ```
+
+  Also you can force a token update when needed:
+
+  ```elixir
+  HttpClients.Creditas.TokenServer.update_token(MyApp.CreditasTokenServer)
+  ```
+
+  Or you can get a new token and set it by yourself:
+
+  ```elixir
+  config = [
+    url: "https://auth-staging.creditas.com.br/api/internal_clients/tokens",
+    credentials: %{
+      username: "someuser",
+      password: "password123",
+      grant_type: "password"
+    }
+  ]
+  {:ok, token} = HttpClients.Creditas.TokenServer.request_new_token(config)
+  HttpClients.Creditas.TokenServer.set_token(MyApp.CreditasTokenServer, token)
+  ```
+  """
+
   use Agent
   require Logger
 
@@ -26,11 +78,11 @@ defmodule HttpClients.Creditas.TokenServer do
   def request_new_token(url: url, credentials: credentials)
       when is_binary(url) and is_map(credentials) do
     case Tesla.post(creditas_client(), url, credentials) do
-          {:ok, %Tesla.Env{status: 201, body: token}} -> {:ok, build_token(token)}
-          {:ok, %Tesla.Env{} = response} -> {:error, response}
-          {:error, reason} -> {:error, reason}
-        end
+      {:ok, %Tesla.Env{status: 201, body: token}} -> {:ok, build_token(token)}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
     end
+  end
 
   defp creditas_client do
     middleware = [
