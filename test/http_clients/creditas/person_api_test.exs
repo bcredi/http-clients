@@ -22,8 +22,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         {Tesla.Middleware.Logger, :call, [[]]}
       ]
 
-      client = PersonApi.client(@base_url, @bearer_token)
-      assert %Tesla.Client{pre: ^expected_configs} = client
+      assert %Tesla.Client{pre: ^expected_configs} = PersonApi.client(@base_url, @bearer_token)
     end
   end
 end
