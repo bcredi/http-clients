@@ -1,8 +1,9 @@
 defmodule HttpClients.Creditas.TokenServerTest do
   use ExUnit.Case
+  import Mock
   import Tesla.Mock
 
-  alias HttpClients.Creditas.TokenServer
+  alias HttpClients.Creditas.{Token, TokenServer}
 
   @creditas_url "https://test.com/api/internal_clients/tokens"
 
@@ -15,7 +16,7 @@ defmodule HttpClients.Creditas.TokenServerTest do
     }
   ]
 
-  @token %{
+  @token_response %{
     "access_token" =>
       "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiY2IzZTQ4NzAtMDIyMC00YTMwLTkxYjctYThmY2RhMzRkYjNkIiwidXNlcl90eXBlIjoiYXBpLWNsaWVudCIsInRva2VuX3R5cGUiOiJhY2Nlc3NfdG9rZW4iLCJzZXNzaW9uX2lkIjoiNmRhOWU1NDEtZDIwYi00NjZlLTlhNGQtYmY1OTJjYWZmNzdiIiwiZXhwIjoxNjIxNTIyMzc1LCJpYXQiOjE2MjE1MTUxNzUsImlzcyI6ImJhbmtmYWNpbF9jb3JlIn0.xutmWQjk7Q_o0E2IxtImbcjiOmemuLlhwqnUc8k1nfc",
     "token_type" => "bearer",
@@ -23,8 +24,14 @@ defmodule HttpClients.Creditas.TokenServerTest do
     "expires_in" => 7200
   }
 
-  setup do
-    mock_global(fn %{method: :post, url: @creditas_url} -> json(@token, status: 201) end)
+  @datetime_now ~U[2021-12-31 00:00:00.000000Z]
+  @token %Token{
+    access_token: @token_response["access_token"],
+    expires_at: ~U[2021-12-31 02:00:00.000000Z]
+  }
+
+  setup_with_mocks([{DateTime, [:passthrough], utc_now: fn -> @datetime_now end}]) do
+    mock_global(fn %{method: :post, url: @creditas_url} -> json(@token_response, status: 201) end)
 
     opts = [name: TokenServer, config: @config]
     {:ok, pid: start_supervised!({TokenServer, opts})}
@@ -85,6 +92,13 @@ defmodule HttpClients.Creditas.TokenServerTest do
 
     test "requests a new token" do
       assert TokenServer.request_new_token(@config) == {:ok, @token}
+    end
+  end
+
+  describe "get_token/1" do
+    test "returns a token", %{pid: pid} do
+      assert TokenServer.get_token(pid) == @token
+      assert TokenServer.get_token(TokenServer) == @token
     end
   end
 end
