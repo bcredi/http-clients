@@ -54,12 +54,21 @@ defmodule HttpClients.Creditas.PersonApiTest do
       ],
       "addresses" => [
         %{
-          "type" => "BILLING",
+          "type" => "HOME",
           "country" => "BR",
           "street" => "Av de casa",
           "number" => "1010",
           "zipCode" => "81810110",
           "neighborhood" => "Xaxim",
+          "complement" => "some complement"
+        },
+        %{
+          "type" => "BILLING",
+          "country" => "BR",
+          "street" => "Av de bill",
+          "number" => "2020",
+          "zipCode" => "81810111",
+          "neighborhood" => "Centro",
           "complement" => "some complement"
         }
       ]
@@ -87,29 +96,38 @@ defmodule HttpClients.Creditas.PersonApiTest do
           }
         ],
         addresses: [
-          %Address{
-            type: "BILLING",
+          %HttpClients.Creditas.PersonApi.Address{
+            complement: "some complement",
             country: "BR",
-            street: "Av de casa",
-            number: "1010",
-            zipCode: "81810110",
+            neighborhood: "Centro",
+            number: "2020",
+            street: "Av de bill",
+            type: "BILLING",
+            zipCode: "81810111"
+          },
+          %HttpClients.Creditas.PersonApi.Address{
+            complement: "some complement",
+            country: "BR",
             neighborhood: "Xaxim",
-            complement: "some complement"
+            number: "1010",
+            street: "Av de casa",
+            type: "HOME",
+            zipCode: "81810110"
           }
         ]
       }
 
-      assert {:ok, expected_response} == PersonApi.get_person(@client, @cpf)
+      assert {:ok, expected_response} == PersonApi.get_person_by_cpf(@client, @cpf)
     end
 
     test "returns error when response is not successfull" do
       mock(fn %{url: "/persons", method: :get, query: @query} -> %Tesla.Env{status: 400} end)
-      assert {:error, %Tesla.Env{status: 400}} == PersonApi.get_person(@client, @cpf)
+      assert {:error, %Tesla.Env{status: 400}} == PersonApi.get_person_by_cpf(@client, @cpf)
     end
 
     test "returns error when does not respond" do
       mock(fn %{url: "/persons", method: :get, query: @query} -> {:error, :timeout} end)
-      assert {:error, :timeout} == PersonApi.get_person(@client, @cpf)
+      assert {:error, :timeout} == PersonApi.get_person_by_cpf(@client, @cpf)
     end
   end
 end
