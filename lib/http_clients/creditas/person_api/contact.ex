@@ -8,5 +8,6 @@ defmodule HttpClients.Creditas.PersonApi.Contact do
         }
 
   @derive Jason.Encoder
+  @enforce_keys ~w(channel code type)a
   defstruct ~w(channel code type)a
 end

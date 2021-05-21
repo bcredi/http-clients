@@ -34,7 +34,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
     @cpf "45658265002"
     @query "mainDocument.code=#{@cpf}"
     @response_body %{
-      "fullName" => "requested",
+      "fullName" => "Fulano Sicrano",
       "birthDate" => "10-10-1990",
       "mainDocument" => %{
         "type" => "CPF",
@@ -55,12 +55,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
       "addresses" => [
         %{
           "type" => "HOME",
-          "country" => "BR",
-          "street" => "Av de casa",
-          "number" => "1010",
-          "zipCode" => "81810110",
-          "neighborhood" => "Xaxim",
-          "complement" => "some complement"
+          "country" => "BR"
         },
         %{
           "type" => "BILLING",
@@ -69,7 +64,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
           "number" => "2020",
           "zipCode" => "81810111",
           "neighborhood" => "Centro",
-          "complement" => "some complement"
+          "complement" => "apto 123"
         }
       ]
     }
@@ -80,7 +75,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
       end)
 
       expected_response = %Person{
-        fullName: "requested",
+        fullName: "Fulano Sicrano",
         birthDate: "10-10-1990",
         mainDocument: %MainDocument{type: "CPF", code: @cpf},
         contacts: [
@@ -97,7 +92,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         ],
         addresses: [
           %Address{
-            complement: "some complement",
+            complement: "apto 123",
             country: "BR",
             neighborhood: "Centro",
             number: "2020",
@@ -106,28 +101,23 @@ defmodule HttpClients.Creditas.PersonApiTest do
             zipCode: "81810111"
           },
           %Address{
-            complement: "some complement",
             country: "BR",
-            neighborhood: "Xaxim",
-            number: "1010",
-            street: "Av de casa",
-            type: "HOME",
-            zipCode: "81810110"
+            type: "HOME"
           }
         ]
       }
 
-      assert {:ok, expected_response} == PersonApi.get_person_by_cpf(@client, @cpf)
+      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:ok, expected_response}
     end
 
     test "returns error when request fails" do
       mock(fn %{url: "/persons", method: :get, query: @query} -> %Tesla.Env{status: 400} end)
-      assert {:error, %Tesla.Env{status: 400}} == PersonApi.get_person_by_cpf(@client, @cpf)
+      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:error, %Tesla.Env{status: 400}}
     end
 
     test "returns error when does not respond" do
       mock(fn %{url: "/persons", method: :get, query: @query} -> {:error, :timeout} end)
-      assert {:error, :timeout} == PersonApi.get_person_by_cpf(@client, @cpf)
+      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:error, :timeout}
     end
   end
 end
