@@ -8,10 +8,11 @@ defmodule HttpClients.Creditas.PersonApi.Person do
           birthDate: Date.t(),
           contacts: List.t(Contact.t()),
           addresses: List.t(Address.t()),
-          mainDocument: MainDocument.t()
+          mainDocument: MainDocument.t(),
+          currentVersion: integer()
         }
 
-  @enforce_keys ~w(fullName birthDate mainDocument)a
   @derive Jason.Encoder
-  defstruct ~w(fullName birthDate contacts addresses mainDocument)a
+  @enforce_keys ~w(fullName birthDate mainDocument)a
+  defstruct ~w(fullName birthDate contacts addresses mainDocument currentVersion)a
 end
