@@ -84,19 +84,19 @@ defmodule HttpClients.Creditas.PersonApiTest do
         birthDate: "10-10-1990",
         mainDocument: %MainDocument{type: "CPF", code: @cpf},
         contacts: [
-          %HttpClients.Creditas.PersonApi.Contact{
+          %Contact{
             channel: "PHONE",
             code: "55998788888",
             type: "PERSONAL"
           },
-          %HttpClients.Creditas.PersonApi.Contact{
+          %Contact{
             channel: "PHONE",
             code: "55998788454",
             type: "PERSONAL"
           }
         ],
         addresses: [
-          %HttpClients.Creditas.PersonApi.Address{
+          %Address{
             complement: "some complement",
             country: "BR",
             neighborhood: "Centro",
@@ -105,7 +105,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
             type: "BILLING",
             zipCode: "81810111"
           },
-          %HttpClients.Creditas.PersonApi.Address{
+          %Address{
             complement: "some complement",
             country: "BR",
             neighborhood: "Xaxim",
@@ -120,7 +120,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
       assert {:ok, expected_response} == PersonApi.get_person_by_cpf(@client, @cpf)
     end
 
-    test "returns error when response is not successfull" do
+    test "returns error when request fails" do
       mock(fn %{url: "/persons", method: :get, query: @query} -> %Tesla.Env{status: 400} end)
       assert {:error, %Tesla.Env{status: 400}} == PersonApi.get_person_by_cpf(@client, @cpf)
     end
