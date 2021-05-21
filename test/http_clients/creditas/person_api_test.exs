@@ -81,16 +81,20 @@ defmodule HttpClients.Creditas.PersonApiTest do
         contacts: [
           %Contact{
             channel: "PHONE",
-            code: "55998788888",
+            code: "55998788454",
             type: "PERSONAL"
           },
           %Contact{
             channel: "PHONE",
-            code: "55998788454",
+            code: "55998788888",
             type: "PERSONAL"
           }
         ],
         addresses: [
+          %Address{
+            country: "BR",
+            type: "HOME"
+          },
           %Address{
             complement: "apto 123",
             country: "BR",
@@ -99,10 +103,6 @@ defmodule HttpClients.Creditas.PersonApiTest do
             street: "Av de bill",
             type: "BILLING",
             zipCode: "81810111"
-          },
-          %Address{
-            country: "BR",
-            type: "HOME"
           }
         ]
       }

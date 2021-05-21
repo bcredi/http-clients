@@ -23,42 +23,40 @@ defmodule HttpClients.Creditas.PersonApi do
     %Person{
       fullName: attrs["fullName"],
       birthDate: attrs["birthDate"],
-      contacts: build_contacts(attrs),
-      addresses: build_addresses(attrs),
-      mainDocument: %MainDocument{
-        type: attrs["mainDocument"]["type"],
-        code: attrs["mainDocument"]["code"]
-      }
+      contacts: build_contacts(attrs["contacts"]),
+      addresses: build_addresses(attrs["addresses"]),
+      mainDocument: build_main_document(attrs["mainDocument"])
     }
   end
 
-  defp build_contacts(attrs) do
-    Enum.reduce(attrs["contacts"], [], fn contact, contacts ->
-      [
-        %Contact{
-          channel: contact["channel"],
-          code: contact["code"],
-          type: contact["type"]
-        }
-        | contacts
-      ]
+  defp build_main_document(main_document) do
+    %MainDocument{
+      type: main_document["type"],
+      code: main_document["code"]
+    }
+  end
+
+  defp build_contacts(contacts) do
+    Enum.map(contacts, fn contact ->
+      %Contact{
+        channel: contact["channel"],
+        code: contact["code"],
+        type: contact["type"]
+      }
     end)
   end
 
-  defp build_addresses(attrs) do
-    Enum.reduce(attrs["addresses"], [], fn address, addresses ->
-      [
-        %Address{
-          type: address["type"],
-          country: address["country"],
-          street: address["street"],
-          number: address["number"],
-          zipCode: address["zipCode"],
-          neighborhood: address["neighborhood"],
-          complement: address["complement"]
-        }
-        | addresses
-      ]
+  defp build_addresses(addresses) do
+    Enum.map(addresses, fn address ->
+      %Address{
+        type: address["type"],
+        country: address["country"],
+        street: address["street"],
+        number: address["number"],
+        zipCode: address["zipCode"],
+        neighborhood: address["neighborhood"],
+        complement: address["complement"]
+      }
     end)
   end
 
