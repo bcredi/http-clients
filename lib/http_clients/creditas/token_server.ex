@@ -125,8 +125,8 @@ defmodule HttpClients.Creditas.TokenServer do
 
   defp update_token?(%Token{expires_at: expires_at}, seconds_before_refresh) do
     now = DateTime.utc_now()
-    diff_seconds = DateTime.diff(expires_at, now)
-    0 > diff_seconds or diff_seconds <= seconds_before_refresh
+    seconds_until_expiration = DateTime.diff(expires_at, now)
+    0 > seconds_until_expiration or seconds_until_expiration <= seconds_before_refresh
   end
 
   @doc "Set a new token for the given TokenServer"
