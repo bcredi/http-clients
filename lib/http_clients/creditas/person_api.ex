@@ -3,7 +3,7 @@ defmodule HttpClients.Creditas.PersonApi do
 
   alias HttpClients.Creditas.PersonApi.{Address, Contact, MainDocument, Person}
 
-  @spec get_person_by_cpf(Tesla.Client.t(), String.t()) :: Person.t()
+  @spec get_person_by_cpf(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Person.t()}
   def get_person_by_cpf(client, cpf) do
     query = "mainDocument.code=#{cpf}"
 
@@ -19,12 +19,23 @@ defmodule HttpClients.Creditas.PersonApi do
     end
   end
 
+  @spec create_person(Tesla.Client.t(), Person.t()) :: {:error, any} | {:ok, Person.t()}
+  def create_person(client, person) do
+    case Tesla.post(client, "/persons", person) do
+      {:ok, %Tesla.Env{status: 201, body: attrs}} -> {:ok, build_person(attrs)}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   defp build_person(attrs) do
     %Person{
+      id: attrs["id"],
       fullName: attrs["fullName"],
       birthDate: attrs["birthDate"],
-      contacts: build_contacts(attrs["contacts"]),
-      addresses: build_addresses(attrs["addresses"]),
+      version: attrs["version"],
+      contacts: build_contacts(attrs["contacts"] || []),
+      addresses: build_addresses(attrs["addresses"] || []),
       mainDocument: build_main_document(attrs["mainDocument"])
     }
   end
