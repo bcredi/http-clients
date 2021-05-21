@@ -158,6 +158,8 @@ defmodule HttpClients.Creditas.TokenServerTest do
 
       with_mock DateTime, [:passthrough], utc_now: fn -> current_datetime end do
         token = TokenServer.get_refreshed_token(pid, @seconds_before_refresh)
+        assert ^token = TokenServer.get_refreshed_token(pid)
+        assert ^token = TokenServer.get_refreshed_token(TokenServer)
         assert ^token = TokenServer.get_refreshed_token(TokenServer, @seconds_before_refresh)
         assert_called(DateTime.utc_now())
         token
