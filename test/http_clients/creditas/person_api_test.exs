@@ -29,7 +29,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
     end
   end
 
-  describe "get_person_by_cpf/?" do
+  describe "get_person_by_cpf/2" do
     @client %Tesla.Client{}
     @cpf "45658265002"
     @query "mainDocument.code=#{@cpf}"
