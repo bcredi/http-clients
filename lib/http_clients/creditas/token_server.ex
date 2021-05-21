@@ -112,7 +112,7 @@ defmodule HttpClients.Creditas.TokenServer do
 
   @doc "Gets a refreshed token from the given TokenServer"
   @spec get_refreshed_token(atom() | pid(), integer()) :: map()
-  def get_refreshed_token(server, seconds_before_refresh)
+  def get_refreshed_token(server, seconds_before_refresh \\ 30)
       when is_token_server(server) and seconds_before_refresh >= 0 do
     token = Agent.get(server, & &1[:token])
 
