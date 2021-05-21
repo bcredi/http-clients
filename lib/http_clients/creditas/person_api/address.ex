@@ -12,5 +12,6 @@ defmodule HttpClients.Creditas.PersonApi.Address do
         }
 
   @derive Jason.Encoder
+  @enforce_keys ~w(type country)a
   defstruct ~w(type country street number zipCode neighborhood complement)a
 end
