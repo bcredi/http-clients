@@ -74,7 +74,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         %Tesla.Env{status: 200, body: @response_body}
       end)
 
-      expected_response = %Person{
+      expected_person = %Person{
         fullName: "Fulano Sicrano",
         birthDate: "10-10-1990",
         mainDocument: %MainDocument{type: "CPF", code: @cpf},
@@ -107,7 +107,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         ]
       }
 
-      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:ok, expected_response}
+      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:ok, expected_person}
     end
 
     test "returns error when request fails" do
