@@ -63,36 +63,6 @@ defmodule HttpClients.Creditas.TokenServerTest do
     end
   end
 
-  describe "get_new_token/1" do
-    test "fails to request a new token", %{pid: pid} do
-      mock_global(fn %{method: :post, url: @creditas_url} -> {:error, :timeout} end)
-      assert TokenServer.get_new_token(pid) == {:error, :timeout}
-      assert TokenServer.get_new_token(TokenServer) == {:error, :timeout}
-    end
-
-    test "returns error with invalid credentials", %{pid: pid} do
-      error_response = %{"error" => "Invalid Credentials"}
-
-      mock_global(fn %{method: :post, url: @creditas_url} -> json(error_response, status: 401) end)
-
-      assert {:error, %Tesla.Env{status: 401, body: ^error_response}} =
-               TokenServer.get_new_token(pid)
-
-      assert {:error, %Tesla.Env{status: 401, body: ^error_response}} =
-               TokenServer.get_new_token(TokenServer)
-    end
-
-    test "requests a new token", %{pid: pid} do
-      assert TokenServer.get_new_token(pid) == {:ok, @token}
-      Agent.get(pid, fn state -> assert state.token == @token end)
-      assert_called(DateTime.utc_now())
-
-      assert TokenServer.get_new_token(TokenServer) == {:ok, @token}
-      Agent.get(TokenServer, fn state -> assert state.token == @token end)
-      assert_called(DateTime.utc_now())
-    end
-  end
-
   describe "get_token/2" do
     @refreshed_access_token "some access_token"
     @refreshed_token_response Map.put(@token_response, "access_token", @refreshed_access_token)
@@ -102,17 +72,25 @@ defmodule HttpClients.Creditas.TokenServerTest do
       error_response = {:error, :timeout}
       mock_global(fn %{method: :post, url: @creditas_url} -> error_response end)
 
-      expired_seconds = @token_response["expires_in"] + 1
-      expired_datetime = DateTime.add(@datetime_now, expired_seconds, :second)
+      assert TokenServer.get_token(pid, force_refresh: true) == error_response
 
-      with_mock DateTime, [:passthrough], utc_now: fn -> expired_datetime end do
-        assert TokenServer.get_token(pid, @seconds_before_refresh) == error_response
+      assert TokenServer.get_token(TokenServer, force_refresh: true) ==
+               error_response
 
-        assert TokenServer.get_token(TokenServer, @seconds_before_refresh) ==
-                 error_response
+      assert_called(DateTime.utc_now())
+    end
 
-        assert_called(DateTime.utc_now())
-      end
+    test "refreshes a token with force_refresh option", %{pid: pid} do
+      mock_global(fn %{method: :post, url: @creditas_url} ->
+        json(@refreshed_token_response, status: 201)
+      end)
+
+      assert %Token{} = token = TokenServer.get_token(pid, force_refresh: true)
+      assert TokenServer.get_token(TokenServer, force_refresh: true) == token
+      Agent.get(TokenServer, fn state -> assert state.token == token end)
+      assert_called(DateTime.utc_now())
+
+      token
     end
 
     test "returns a token", %{pid: pid} do
@@ -157,11 +135,14 @@ defmodule HttpClients.Creditas.TokenServerTest do
       current_datetime = DateTime.add(@datetime_now, add_seconds_to_datetime_now, :second)
 
       with_mock DateTime, [:passthrough], utc_now: fn -> current_datetime end do
-        assert %Token{} = token = TokenServer.get_token(pid, @seconds_before_refresh)
+        opts = [seconds_before_refresh: @seconds_before_refresh]
+        assert %Token{} = token = TokenServer.get_token(pid, opts)
         assert TokenServer.get_token(pid) == token
+        assert TokenServer.get_token(TokenServer, opts) == token
         assert TokenServer.get_token(TokenServer) == token
-        assert TokenServer.get_token(TokenServer, @seconds_before_refresh) == token
+        Agent.get(TokenServer, fn state -> assert state.token == token end)
         assert_called(DateTime.utc_now())
+
         token
       end
     end

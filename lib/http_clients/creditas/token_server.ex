@@ -36,8 +36,6 @@ defmodule HttpClients.Creditas.TokenServer do
 
   alias HttpClients.Creditas.Token
 
-  defguardp is_token_server(server) when is_pid(server) or is_atom(server)
-
   @spec start_link(keyword()) :: {:ok, pid()} | {:error, any()} | no_return()
   def start_link(opts) when is_list(opts) do
     {config, opts} = Keyword.pop!(opts, :config)
@@ -81,26 +79,18 @@ defmodule HttpClients.Creditas.TokenServer do
     }
   end
 
-  @doc "Gets a new token from the given TokenServer"
-  @spec get_new_token(atom() | pid()) :: {:error, any} | {:ok, Token.t()}
-  def get_new_token(server) when is_token_server(server) do
-    config = Agent.get(server, & &1[:config])
+  defguardp is_token_server(server) when is_pid(server) or is_atom(server)
 
-    with {:ok, token} <- request_new_token(config),
-         :ok <- Agent.update(server, &Map.put(&1, :token, token)) do
-      Logger.info("Creditas token updated for #{inspect(server)}")
-      {:ok, token}
-    end
-  end
-
-  @doc "Gets a token from the given TokenServer"
-  @spec get_token(atom() | pid(), integer()) :: map()
-  def get_token(server, seconds_before_refresh \\ 30)
-      when is_token_server(server) and seconds_before_refresh >= 0 do
+  @doc "Gets a refreshed token from the given TokenServer"
+  @spec get_token(atom() | pid(), force_refresh: boolean(), seconds_before_refresh: integer()) ::
+          map()
+  def get_token(server, opts \\ []) when is_token_server(server) do
+    refresh? = Keyword.get(opts, :force_refresh, false)
+    seconds_before_refresh = Keyword.get(opts, :seconds_before_refresh, 30)
     token = Agent.get(server, & &1[:token])
 
-    if expired?(token, seconds_before_refresh) do
-      with {:ok, token} <- get_new_token(server), do: token
+    if refresh? or expired?(token, seconds_before_refresh) do
+      with {:ok, token} <- update_token(server), do: token
     else
       token
     end
@@ -110,5 +100,15 @@ defmodule HttpClients.Creditas.TokenServer do
     now = DateTime.utc_now()
     seconds_until_expiration = DateTime.diff(expires_at, now)
     0 > seconds_until_expiration or seconds_until_expiration <= seconds_before_refresh
+  end
+
+  defp update_token(server) do
+    config = Agent.get(server, & &1[:config])
+
+    with {:ok, token} <- request_new_token(config),
+         :ok <- Agent.update(server, &Map.put(&1, :token, token)) do
+      Logger.info("Creditas token updated for #{inspect(server)}")
+      {:ok, token}
+    end
   end
 end
