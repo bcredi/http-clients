@@ -5,10 +5,10 @@ defmodule HttpClients.Creditas.PersonApi do
 
   @spec get_person_by_cpf(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Person.t()}
   def get_person_by_cpf(client, cpf) do
-    query = "mainDocument.code=#{cpf}"
+    query = ["mainDocument.code": cpf]
 
     case Tesla.get(client, "/persons", query: query) do
-      {:ok, %Tesla.Env{status: 200, body: attrs}} -> {:ok, build_person(attrs)}
+      {:ok, %Tesla.Env{status: 200, body: %{"items" => [attrs]}}} -> {:ok, build_person(attrs)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
@@ -16,6 +16,8 @@ defmodule HttpClients.Creditas.PersonApi do
 
   @spec create_person(Tesla.Client.t(), Person.t()) :: {:error, any} | {:ok, Person.t()}
   def create_person(client, %Person{} = person) do
+    person = Map.from_struct(person)
+
     case Tesla.post(client, "/persons", person) do
       {:ok, %Tesla.Env{status: 201, body: attrs}} -> {:ok, build_person(attrs)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
@@ -25,9 +27,9 @@ defmodule HttpClients.Creditas.PersonApi do
 
   @spec update_person(Tesla.Client.t(), Person.t(), map()) :: {:ok, Person.t()} | {:error, any()}
   def update_person(client, %Person{id: person_id, version: current_version}, attrs) do
-    query = "currentVersion=#{current_version}"
+    query = [currentVersion: current_version]
 
-    case(Tesla.patch(client, "/persons/#{person_id}", attrs, query: query)) do
+    case Tesla.patch(client, "/persons/#{person_id}", attrs, query: query) do
       {:ok, %Tesla.Env{status: 200, body: updated_attrs}} -> {:ok, build_person(updated_attrs)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
@@ -81,13 +83,17 @@ defmodule HttpClients.Creditas.PersonApi do
   def client(base_url, bearer_token) do
     headers = headers(bearer_token)
 
+    json_opts = [
+      decode_content_types: ["application/merge-patch+json", "application/vnd.creditas.v1+json"]
+    ]
+
     middlewares = [
       {Tesla.Middleware.BaseUrl, base_url},
-      {Tesla.Middleware.Headers, headers},
-      Tesla.Middleware.JSON,
+      {Tesla.Middleware.JSON, json_opts},
       {Tesla.Middleware.Retry, delay: 1_000, max_retries: 3},
       {Tesla.Middleware.Timeout, timeout: 120_000},
-      Tesla.Middleware.Logger
+      Tesla.Middleware.Logger,
+      {Tesla.Middleware.Headers, headers}
     ]
 
     Tesla.client(middlewares)
