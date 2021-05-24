@@ -188,13 +188,13 @@ defmodule HttpClients.Creditas.PersonApiTest do
     test "updates a person" do
       expected_response =
         @response_body
-        |> Map.put("fullName", "Sicrano Fulano")
-        |> Map.put("birthDate", "10-10-1999")
+        |> Map.put("fullName", @attrs["fullName"])
+        |> Map.put("birthDate", @attrs["birthDate"])
 
       expected_person =
         @person
-        |> Map.put(:fullName, "Sicrano Fulano")
-        |> Map.put(:birthDate, "10-10-1999")
+        |> Map.put(:fullName, @attrs["fullName"])
+        |> Map.put(:birthDate, @attrs["birthDate"])
 
       mock(fn %{method: :patch, url: "/persons/#{@person_id}", body: @attrs, query: @query} ->
         %Tesla.Env{status: 200, body: expected_response}
