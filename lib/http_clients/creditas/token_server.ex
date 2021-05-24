@@ -81,9 +81,10 @@ defmodule HttpClients.Creditas.TokenServer do
 
   defguardp is_token_server(server) when is_pid(server) or is_atom(server)
 
+  @type opts :: [force_refresh: boolean(), seconds_before_refresh: integer()]
+
   @doc "Gets a refreshed token from the given TokenServer"
-  @spec get_token(atom() | pid(), force_refresh: boolean(), seconds_before_refresh: integer()) ::
-          map()
+  @spec get_token(atom() | pid(), opts()) :: map()
   def get_token(server, opts \\ []) when is_token_server(server) do
     refresh? = Keyword.get(opts, :force_refresh, false)
     seconds_before_refresh = Keyword.get(opts, :seconds_before_refresh, 30)
