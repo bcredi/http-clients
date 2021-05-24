@@ -54,34 +54,41 @@ defmodule HttpClients.Creditas.TokenServerTest do
       pid = start_supervised!({TokenServer, config: @config, name: name})
 
       Agent.get(pid, fn state ->
-        assert state[:token] == @token
-        assert state[:config] == @config
+        assert state == %{token: @token, config: @config}
       end)
 
       Agent.get(name, fn state ->
-        assert state[:token] == @token
-        assert state[:config] == @config
+        assert state == %{token: @token, config: @config}
       end)
     end
   end
 
-  describe "request_new_token/1" do
-    test "fails to request a new token" do
+  describe "get_new_token/1" do
+    test "fails to request a new token", %{pid: pid} do
       mock_global(fn %{method: :post, url: @creditas_url} -> {:error, :timeout} end)
-      assert TokenServer.request_new_token(@config) == {:error, :timeout}
+      assert TokenServer.get_new_token(pid) == {:error, :timeout}
+      assert TokenServer.get_new_token(TokenServer) == {:error, :timeout}
     end
 
-    test "returns error with invalid credentials" do
+    test "returns error with invalid credentials", %{pid: pid} do
       error_response = %{"error" => "Invalid Credentials"}
 
       mock_global(fn %{method: :post, url: @creditas_url} -> json(error_response, status: 401) end)
 
       assert {:error, %Tesla.Env{status: 401, body: ^error_response}} =
-               TokenServer.request_new_token(@config)
+               TokenServer.get_new_token(pid)
+
+      assert {:error, %Tesla.Env{status: 401, body: ^error_response}} =
+               TokenServer.get_new_token(TokenServer)
     end
 
-    test "requests a new token" do
-      assert TokenServer.request_new_token(@config) == {:ok, @token}
+    test "requests a new token", %{pid: pid} do
+      assert TokenServer.get_new_token(pid) == {:ok, @token}
+      Agent.get(pid, fn state -> assert state.token == @token end)
+      assert_called(DateTime.utc_now())
+
+      assert TokenServer.get_new_token(TokenServer) == {:ok, @token}
+      Agent.get(TokenServer, fn state -> assert state.token == @token end)
       assert_called(DateTime.utc_now())
     end
   end

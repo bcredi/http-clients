@@ -25,6 +25,9 @@ defmodule HttpClients.Creditas.TokenServer do
 
   # get token and refresh it if is expired or at most 120 seconds before expiring
   HttpClients.Creditas.TokenServer.get_token(MyApp.CreditasTokenServer, 120)
+
+  # get a new refreshed token
+  HttpClients.Creditas.TokenServer.get_new_token(MyApp.CreditasTokenServer)
   ```
   """
 
@@ -49,11 +52,8 @@ defmodule HttpClients.Creditas.TokenServer do
     )
   end
 
-  @doc "Request an authenticated token to Creditas"
-  @spec request_new_token([{:credentials, map} | {:url, binary}, ...]) ::
-          {:error, any} | {:ok, Token.t()}
-  def request_new_token(url: url, credentials: credentials)
-      when is_binary(url) and is_map(credentials) do
+  defp request_new_token(url: url, credentials: credentials)
+       when is_binary(url) and is_map(credentials) do
     case Tesla.post(creditas_client(), url, credentials) do
       {:ok, %Tesla.Env{status: 201, body: token}} -> {:ok, build_token(token)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
@@ -81,14 +81,26 @@ defmodule HttpClients.Creditas.TokenServer do
     }
   end
 
-  @doc "Gets a refreshed token from the given TokenServer"
+  @doc "Gets a new token from the given TokenServer"
+  @spec get_new_token(atom() | pid()) :: {:error, any} | {:ok, Token.t()}
+  def get_new_token(server) when is_token_server(server) do
+    config = Agent.get(server, & &1[:config])
+
+    with {:ok, token} <- request_new_token(config),
+         :ok <- Agent.update(server, &Map.put(&1, :token, token)) do
+      Logger.info("Creditas token updated for #{inspect(server)}")
+      {:ok, token}
+    end
+  end
+
+  @doc "Gets a token from the given TokenServer"
   @spec get_token(atom() | pid(), integer()) :: map()
   def get_token(server, seconds_before_refresh \\ 30)
       when is_token_server(server) and seconds_before_refresh >= 0 do
     token = Agent.get(server, & &1[:token])
 
     if expired?(token, seconds_before_refresh) do
-      with {:ok, token} <- update_token(server), do: token
+      with {:ok, token} <- get_new_token(server), do: token
     else
       token
     end
@@ -98,15 +110,5 @@ defmodule HttpClients.Creditas.TokenServer do
     now = DateTime.utc_now()
     seconds_until_expiration = DateTime.diff(expires_at, now)
     0 > seconds_until_expiration or seconds_until_expiration <= seconds_before_refresh
-  end
-
-  defp update_token(server) do
-    config = Agent.get(server, & &1[:config])
-
-    with {:ok, token} <- request_new_token(config),
-         :ok <- Agent.update(server, &Map.put(&1, :token, token)) do
-      Logger.info("Creditas token updated for #{inspect(server)}")
-      {:ok, token}
-    end
   end
 end
