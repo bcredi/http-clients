@@ -8,21 +8,27 @@ defmodule HttpClients.Creditas.PersonApi do
     query = "mainDocument.code=#{cpf}"
 
     case Tesla.get(client, "/persons", query: query) do
-      {:ok, %Tesla.Env{status: 200, body: attrs}} ->
-        {:ok, build_person(attrs)}
-
-      {:ok, %Tesla.Env{} = response} ->
-        {:error, response}
-
-      {:error, reason} ->
-        {:error, reason}
+      {:ok, %Tesla.Env{status: 200, body: attrs}} -> {:ok, build_person(attrs)}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
     end
   end
 
   @spec create_person(Tesla.Client.t(), Person.t()) :: {:error, any} | {:ok, Person.t()}
-  def create_person(client, person) do
+  def create_person(client, %Person{} = person) do
     case Tesla.post(client, "/persons", person) do
       {:ok, %Tesla.Env{status: 201, body: attrs}} -> {:ok, build_person(attrs)}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @spec update_person(Tesla.Client.t(), Person.t(), map()) :: {:ok, Person.t()} | {:error, any()}
+  def update_person(client, %Person{id: person_id, version: current_version}, attrs) do
+    query = "currentVersion=#{current_version}"
+
+    case(Tesla.patch(client, "/persons/#{person_id}", attrs, query: query)) do
+      {:ok, %Tesla.Env{status: 200, body: updated_attrs}} -> {:ok, build_person(updated_attrs)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end

@@ -176,4 +176,48 @@ defmodule HttpClients.Creditas.PersonApiTest do
       assert PersonApi.create_person(@client, @create_person_request) == {:error, :timeout}
     end
   end
+
+  describe "update_person/3" do
+    @current_version 1
+    @query "currentVersion=#{@current_version}"
+    @attrs %{
+      "fullName" => "Sicrano Fulano",
+      "birthDate" => "10-10-1999"
+    }
+
+    test "returns an updated person" do
+      expected_response =
+        @response_body
+        |> Map.put("fullName", "Sicrano Fulano")
+        |> Map.put("birthDate", "10-10-1999")
+
+      expected_person =
+        @person
+        |> Map.put(:fullName, "Sicrano Fulano")
+        |> Map.put(:birthDate, "10-10-1999")
+
+      mock(fn %{method: :patch, url: "/persons/#{@person_id}", body: @attrs, query: @query} ->
+        %Tesla.Env{status: 200, body: expected_response}
+      end)
+
+      assert PersonApi.update_person(@client, @person, @attrs) == {:ok, expected_person}
+    end
+
+    test "returns error when request fails" do
+      mock(fn %{method: :patch, url: "/persons/#{@person_id}", body: @attrs, query: @query} ->
+        %Tesla.Env{status: 400}
+      end)
+
+      assert PersonApi.update_person(@client, @person, @attrs) ==
+               {:error, %Tesla.Env{status: 400}}
+    end
+
+    test "returns error when couldn't call Creditas API" do
+      mock(fn %{method: :patch, url: "/persons/#{@person_id}", body: @attrs, query: @query} ->
+        {:error, :timeout}
+      end)
+
+      assert PersonApi.update_person(@client, @person, @attrs) == {:error, :timeout}
+    end
+  end
 end
