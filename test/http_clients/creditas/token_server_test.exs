@@ -85,12 +85,10 @@ defmodule HttpClients.Creditas.TokenServerTest do
         json(@refreshed_token_response, status: 201)
       end)
 
-      assert %Token{} = token = TokenServer.get_token(pid, force_refresh: true)
-      assert TokenServer.get_token(TokenServer, force_refresh: true) == token
+      assert {:ok, %Token{} = token} = TokenServer.get_token(pid, force_refresh: true)
+      assert TokenServer.get_token(TokenServer, force_refresh: true) == {:ok, token}
       Agent.get(TokenServer, fn state -> assert state.token == token end)
       assert_called(DateTime.utc_now())
-
-      token
     end
 
     test "returns a token", %{pid: pid} do
@@ -136,10 +134,10 @@ defmodule HttpClients.Creditas.TokenServerTest do
 
       with_mock DateTime, [:passthrough], utc_now: fn -> current_datetime end do
         opts = [seconds_before_refresh: @seconds_before_refresh]
-        assert %Token{} = token = TokenServer.get_token(pid, opts)
-        assert TokenServer.get_token(pid) == token
-        assert TokenServer.get_token(TokenServer, opts) == token
-        assert TokenServer.get_token(TokenServer) == token
+        assert {:ok, %Token{} = token} = TokenServer.get_token(pid, opts)
+        assert TokenServer.get_token(pid) == {:ok, token}
+        assert TokenServer.get_token(TokenServer, opts) == {:ok, token}
+        assert TokenServer.get_token(TokenServer) == {:ok, token}
         Agent.get(TokenServer, fn state -> assert state.token == token end)
         assert_called(DateTime.utc_now())
 
