@@ -147,7 +147,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
       assert PersonApi.get_person_by_cpf(@client, @cpf) == {:error, %Tesla.Env{status: 400}}
     end
 
-    test "returns error when does not respond" do
+    test "returns error when couldn't call Creditas API" do
       mock(fn %{url: "/persons", method: :get, query: @query} -> {:error, :timeout} end)
       assert PersonApi.get_person_by_cpf(@client, @cpf) == {:error, :timeout}
     end
@@ -171,7 +171,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
                {:error, %Tesla.Env{status: 400}}
     end
 
-    test "returns error when does not respond" do
+    test "returns error when couldn't call Creditas API" do
       mock(fn %{url: "/persons", method: :post} -> {:error, :timeout} end)
       assert PersonApi.create_person(@client, @create_person_request) == {:error, :timeout}
     end
