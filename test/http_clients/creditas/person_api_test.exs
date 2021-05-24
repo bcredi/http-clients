@@ -185,7 +185,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
       "birthDate" => "10-10-1999"
     }
 
-    test "returns an updated person" do
+    test "updates a person" do
       expected_response =
         @response_body
         |> Map.put("fullName", "Sicrano Fulano")
