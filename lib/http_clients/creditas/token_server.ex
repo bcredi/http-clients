@@ -24,10 +24,10 @@ defmodule HttpClients.Creditas.TokenServer do
   HttpClients.Creditas.TokenServer.get_token(MyApp.CreditasTokenServer)
 
   # get token and refresh it if is expired or at most 120 seconds before expiring
-  HttpClients.Creditas.TokenServer.get_token(MyApp.CreditasTokenServer, 120)
+  HttpClients.Creditas.TokenServer.get_token(MyApp.CreditasTokenServer, seconds_before_refresh: 120)
 
   # get a new refreshed token
-  HttpClients.Creditas.TokenServer.get_new_token(MyApp.CreditasTokenServer)
+  HttpClients.Creditas.TokenServer.get_token(MyApp.CreditasTokenServer, force_refresh: true)
   ```
   """
 
