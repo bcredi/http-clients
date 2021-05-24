@@ -157,10 +157,10 @@ defmodule HttpClients.Creditas.TokenServerTest do
       current_datetime = DateTime.add(@datetime_now, add_seconds_to_datetime_now, :second)
 
       with_mock DateTime, [:passthrough], utc_now: fn -> current_datetime end do
-        token = TokenServer.get_token(pid, @seconds_before_refresh)
-        assert ^token = TokenServer.get_token(pid)
-        assert ^token = TokenServer.get_token(TokenServer)
-        assert ^token = TokenServer.get_token(TokenServer, @seconds_before_refresh)
+        assert %Token{} = token = TokenServer.get_token(pid, @seconds_before_refresh)
+        assert TokenServer.get_token(pid) == token
+        assert TokenServer.get_token(TokenServer) == token
+        assert TokenServer.get_token(TokenServer, @seconds_before_refresh) == token
         assert_called(DateTime.utc_now())
         token
       end
