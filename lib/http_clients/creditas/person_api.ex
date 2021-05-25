@@ -16,6 +16,8 @@ defmodule HttpClients.Creditas.PersonApi do
 
   @spec create_person(Tesla.Client.t(), Person.t()) :: {:error, any} | {:ok, Person.t()}
   def create_person(client, %Person{} = person) do
+    person = Map.from_struct(person)
+
     case Tesla.post(client, "/persons", person) do
       {:ok, %Tesla.Env{status: 201, body: attrs}} -> {:ok, build_person(attrs)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
