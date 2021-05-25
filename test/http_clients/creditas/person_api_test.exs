@@ -89,6 +89,9 @@ defmodule HttpClients.Creditas.PersonApiTest do
   describe "client/2" do
     @base_url "https://api.creditas.io/persons"
     @bearer_token "some_jwt_token"
+    @decode_content_types [
+      decode_content_types: ["application/merge-patch+json", "application/vnd.creditas.v1+json"]
+    ]
     @headers [
       {"Authorization", "Bearer #{@bearer_token}"},
       {"X-Tenant-Id", "creditasbr"},
@@ -98,11 +101,11 @@ defmodule HttpClients.Creditas.PersonApiTest do
     test "returns a tesla client" do
       expected_configs = [
         {Tesla.Middleware.BaseUrl, :call, [@base_url]},
-        {Tesla.Middleware.Headers, :call, [@headers]},
-        {Tesla.Middleware.JSON, :call, [[]]},
+        {Tesla.Middleware.JSON, :call, [@decode_content_types]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 120_000]]},
-        {Tesla.Middleware.Logger, :call, [[]]}
+        {Tesla.Middleware.Logger, :call, [[]]},
+        {Tesla.Middleware.Headers, :call, [@headers]}
       ]
 
       assert %Tesla.Client{pre: ^expected_configs} = PersonApi.client(@base_url, @bearer_token)
@@ -110,18 +113,19 @@ defmodule HttpClients.Creditas.PersonApiTest do
   end
 
   describe "get_person_by_cpf/2" do
-    @query "mainDocument.code=#{@cpf}"
+    @query ["mainDocument.code": @cpf]
+    @get_response_body %{"items" => [@response_body]}
 
     test "returns person" do
       mock(fn %{url: "/persons", method: :get, query: @query} ->
-        %Tesla.Env{status: 200, body: @response_body}
+        %Tesla.Env{status: 200, body: @get_response_body}
       end)
 
       assert PersonApi.get_person_by_cpf(@client, @cpf) == {:ok, @person}
     end
 
     test "returns person without addresses" do
-      response_body = Map.delete(@response_body, "addresses")
+      response_body = %{"items" => [Map.delete(@response_body, "addresses")]}
 
       mock(fn %{url: "/persons", method: :get, query: @query} ->
         %Tesla.Env{status: 200, body: response_body}
@@ -132,7 +136,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
     end
 
     test "returns person without contacts" do
-      response_body = Map.delete(@response_body, "contacts")
+      response_body = %{"items" => [Map.delete(@response_body, "contacts")]}
 
       mock(fn %{url: "/persons", method: :get, query: @query} ->
         %Tesla.Env{status: 200, body: response_body}
@@ -179,7 +183,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
 
   describe "update_person/3" do
     @current_version 1
-    @query "currentVersion=#{@current_version}"
+    @query [currentVersion: @current_version]
     @attrs %{
       "fullName" => "Sicrano Fulano",
       "birthDate" => "10-10-1999"
