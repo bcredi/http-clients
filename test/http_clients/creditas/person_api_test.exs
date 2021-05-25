@@ -90,7 +90,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
 
   describe "client/2" do
     @decode_content_types [
-      decode_content_types: ["application/merge-patch+json", "application/vnd.creditas.v1+json"]
+      decode_content_types: ["application/vnd.creditas.v1+json"]
     ]
     @headers [
       {"Authorization", "Bearer #{@bearer_token}"},
@@ -196,6 +196,14 @@ defmodule HttpClients.Creditas.PersonApiTest do
     }
     @encoded_attrs Jason.encode!(@attrs)
 
+    @update_headers [
+      {"content-type", "application/merge-patch+json"},
+      {"content-type", "application/json"},
+      {"Authorization", "Bearer some_jwt_token"},
+      {"X-Tenant-Id", "creditasbr"},
+      {"Accept", "application/vnd.creditas.v1+json"}
+    ]
+
     test "updates a person" do
       expected_response =
         @response_body
@@ -211,7 +219,8 @@ defmodule HttpClients.Creditas.PersonApiTest do
                        method: :patch,
                        url: "#{@base_url}/persons/#{@person_id}",
                        body: @encoded_attrs,
-                       query: @query
+                       query: @query,
+                       headers: @update_headers
                      } ->
         %Tesla.Env{status: 200, body: expected_response}
       end)
@@ -224,7 +233,8 @@ defmodule HttpClients.Creditas.PersonApiTest do
                        method: :patch,
                        url: "#{@base_url}/persons/#{@person_id}",
                        body: @encoded_attrs,
-                       query: @query
+                       query: @query,
+                       headers: @update_headers
                      } ->
         %Tesla.Env{status: 400}
       end)
@@ -238,7 +248,8 @@ defmodule HttpClients.Creditas.PersonApiTest do
                        method: :patch,
                        url: "#{@base_url}/persons/#{@person_id}",
                        body: @encoded_attrs,
-                       query: @query
+                       query: @query,
+                       headers: @update_headers
                      } ->
         {:error, :timeout}
       end)

@@ -28,8 +28,10 @@ defmodule HttpClients.Creditas.PersonApi do
   @spec update_person(Tesla.Client.t(), Person.t(), map()) :: {:ok, Person.t()} | {:error, any()}
   def update_person(client, %Person{id: person_id, version: current_version}, attrs) do
     query = [currentVersion: current_version]
+    # This header is only needed on patch requests
+    headers = [{"content-type", "application/merge-patch+json"}]
 
-    case Tesla.patch(client, "/persons/#{person_id}", attrs, query: query) do
+    case Tesla.patch(client, "/persons/#{person_id}", attrs, query: query, headers: headers) do
       {:ok, %Tesla.Env{status: 200, body: updated_attrs}} -> {:ok, build_person(updated_attrs)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
@@ -84,7 +86,7 @@ defmodule HttpClients.Creditas.PersonApi do
     headers = headers(bearer_token)
 
     json_opts = [
-      decode_content_types: ["application/merge-patch+json", "application/vnd.creditas.v1+json"]
+      decode_content_types: ["application/vnd.creditas.v1+json"]
     ]
 
     middlewares = [
