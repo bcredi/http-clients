@@ -6,7 +6,9 @@ defmodule HttpClients.Creditas.PersonApiTest do
   alias HttpClients.Creditas.PersonApi
   alias HttpClients.Creditas.PersonApi.{Address, Contact, MainDocument, Person}
 
-  @client %Tesla.Client{}
+  @base_url "https://api.creditas.io/persons"
+  @bearer_token "some_jwt_token"
+  @client PersonApi.client(@base_url, @bearer_token)
   @person_id UUID.uuid4()
   @cpf "45658265002"
 
@@ -87,8 +89,9 @@ defmodule HttpClients.Creditas.PersonApiTest do
   }
 
   describe "client/2" do
-    @base_url "https://api.creditas.io/persons"
-    @bearer_token "some_jwt_token"
+    @decode_content_types [
+      decode_content_types: ["application/vnd.creditas.v1+json"]
+    ]
     @headers [
       {"Authorization", "Bearer #{@bearer_token}"},
       {"X-Tenant-Id", "creditasbr"},
@@ -98,11 +101,11 @@ defmodule HttpClients.Creditas.PersonApiTest do
     test "returns a tesla client" do
       expected_configs = [
         {Tesla.Middleware.BaseUrl, :call, [@base_url]},
-        {Tesla.Middleware.Headers, :call, [@headers]},
-        {Tesla.Middleware.JSON, :call, [[]]},
+        {Tesla.Middleware.JSON, :call, [@decode_content_types]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 120_000]]},
-        {Tesla.Middleware.Logger, :call, [[]]}
+        {Tesla.Middleware.Logger, :call, [[]]},
+        {Tesla.Middleware.Headers, :call, [@headers]}
       ]
 
       assert %Tesla.Client{pre: ^expected_configs} = PersonApi.client(@base_url, @bearer_token)
@@ -110,20 +113,21 @@ defmodule HttpClients.Creditas.PersonApiTest do
   end
 
   describe "get_person_by_cpf/2" do
-    @query "mainDocument.code=#{@cpf}"
+    @query ["mainDocument.code": @cpf]
+    @get_response_body %{"items" => [@response_body]}
 
     test "returns person" do
-      mock(fn %{url: "/persons", method: :get, query: @query} ->
-        %Tesla.Env{status: 200, body: @response_body}
+      mock_global(fn %{url: "#{@base_url}/persons", method: :get, query: @query} ->
+        %Tesla.Env{status: 200, body: @get_response_body}
       end)
 
       assert PersonApi.get_person_by_cpf(@client, @cpf) == {:ok, @person}
     end
 
     test "returns person without addresses" do
-      response_body = Map.delete(@response_body, "addresses")
+      response_body = %{"items" => [Map.delete(@response_body, "addresses")]}
 
-      mock(fn %{url: "/persons", method: :get, query: @query} ->
+      mock_global(fn %{url: "#{@base_url}/persons", method: :get, query: @query} ->
         %Tesla.Env{status: 200, body: response_body}
       end)
 
@@ -132,9 +136,9 @@ defmodule HttpClients.Creditas.PersonApiTest do
     end
 
     test "returns person without contacts" do
-      response_body = Map.delete(@response_body, "contacts")
+      response_body = %{"items" => [Map.delete(@response_body, "contacts")]}
 
-      mock(fn %{url: "/persons", method: :get, query: @query} ->
+      mock_global(fn %{url: "#{@base_url}/persons", method: :get, query: @query} ->
         %Tesla.Env{status: 200, body: response_body}
       end)
 
@@ -143,12 +147,18 @@ defmodule HttpClients.Creditas.PersonApiTest do
     end
 
     test "returns error when request fails" do
-      mock(fn %{url: "/persons", method: :get, query: @query} -> %Tesla.Env{status: 400} end)
+      mock_global(fn %{url: "#{@base_url}/persons", method: :get, query: @query} ->
+        %Tesla.Env{status: 400}
+      end)
+
       assert PersonApi.get_person_by_cpf(@client, @cpf) == {:error, %Tesla.Env{status: 400}}
     end
 
     test "returns error when couldn't call Creditas API" do
-      mock(fn %{url: "/persons", method: :get, query: @query} -> {:error, :timeout} end)
+      mock_global(fn %{url: "#{@base_url}/persons", method: :get, query: @query} ->
+        {:error, :timeout}
+      end)
+
       assert PersonApi.get_person_by_cpf(@client, @cpf) == {:error, :timeout}
     end
   end
@@ -157,7 +167,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
     @create_person_request Map.drop(@person, [:id, :version])
 
     test "returns a person" do
-      mock(fn %{url: "/persons", method: :post} ->
+      mock_global(fn %{url: "#{@base_url}/persons", method: :post} ->
         %Tesla.Env{status: 201, body: @response_body}
       end)
 
@@ -165,15 +175,86 @@ defmodule HttpClients.Creditas.PersonApiTest do
     end
 
     test "returns error when request fails" do
-      mock(fn %{url: "/persons", method: :post} -> %Tesla.Env{status: 400} end)
+      mock_global(fn %{url: "#{@base_url}/persons", method: :post} -> %Tesla.Env{status: 400} end)
 
       assert PersonApi.create_person(@client, @create_person_request) ==
                {:error, %Tesla.Env{status: 400}}
     end
 
     test "returns error when couldn't call Creditas API" do
-      mock(fn %{url: "/persons", method: :post} -> {:error, :timeout} end)
+      mock_global(fn %{url: "#{@base_url}/persons", method: :post} -> {:error, :timeout} end)
       assert PersonApi.create_person(@client, @create_person_request) == {:error, :timeout}
+    end
+  end
+
+  describe "update_person/3" do
+    @current_version 1
+    @query [currentVersion: @current_version]
+    @attrs %{
+      "fullName" => "Sicrano Fulano",
+      "birthDate" => "10-10-1999"
+    }
+    @encoded_attrs Jason.encode!(@attrs)
+
+    @update_headers [
+      {"content-type", "application/merge-patch+json"},
+      {"content-type", "application/json"},
+      {"Authorization", "Bearer some_jwt_token"},
+      {"X-Tenant-Id", "creditasbr"},
+      {"Accept", "application/vnd.creditas.v1+json"}
+    ]
+
+    test "updates a person" do
+      expected_response =
+        @response_body
+        |> Map.put("fullName", @attrs["fullName"])
+        |> Map.put("birthDate", @attrs["birthDate"])
+
+      expected_person =
+        @person
+        |> Map.put(:fullName, @attrs["fullName"])
+        |> Map.put(:birthDate, @attrs["birthDate"])
+
+      mock_global(fn %{
+                       method: :patch,
+                       url: "#{@base_url}/persons/#{@person_id}",
+                       body: @encoded_attrs,
+                       query: @query,
+                       headers: @update_headers
+                     } ->
+        %Tesla.Env{status: 200, body: expected_response}
+      end)
+
+      assert PersonApi.update_person(@client, @person, @attrs) == {:ok, expected_person}
+    end
+
+    test "returns error when request fails" do
+      mock_global(fn %{
+                       method: :patch,
+                       url: "#{@base_url}/persons/#{@person_id}",
+                       body: @encoded_attrs,
+                       query: @query,
+                       headers: @update_headers
+                     } ->
+        %Tesla.Env{status: 400}
+      end)
+
+      assert PersonApi.update_person(@client, @person, @attrs) ==
+               {:error, %Tesla.Env{status: 400}}
+    end
+
+    test "returns error when couldn't call Creditas API" do
+      mock_global(fn %{
+                       method: :patch,
+                       url: "#{@base_url}/persons/#{@person_id}",
+                       body: @encoded_attrs,
+                       query: @query,
+                       headers: @update_headers
+                     } ->
+        {:error, :timeout}
+      end)
+
+      assert PersonApi.update_person(@client, @person, @attrs) == {:error, :timeout}
     end
   end
 end
