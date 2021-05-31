@@ -164,26 +164,32 @@ defmodule HttpClients.Creditas.PersonApiTest do
   end
 
   describe "create_person/2" do
-    @create_person_request Map.drop(@person, [:id, :version])
+    @create_person_attrs %{
+      "fullName" => "Joãozinho Junior",
+      "mainDocument" => %{
+        "type" => "CPF",
+        "code" => "344.189.910-50"
+      }
+    }
 
     test "returns a person" do
       mock_global(fn %{url: "#{@base_url}/persons", method: :post} ->
         %Tesla.Env{status: 201, body: @response_body}
       end)
 
-      assert PersonApi.create_person(@client, @create_person_request) == {:ok, @person}
+      assert PersonApi.create_person(@client, @create_person_attrs) == {:ok, @person}
     end
 
     test "returns error when request fails" do
       mock_global(fn %{url: "#{@base_url}/persons", method: :post} -> %Tesla.Env{status: 400} end)
 
-      assert PersonApi.create_person(@client, @create_person_request) ==
+      assert PersonApi.create_person(@client, @create_person_attrs) ==
                {:error, %Tesla.Env{status: 400}}
     end
 
     test "returns error when couldn't call Creditas API" do
       mock_global(fn %{url: "#{@base_url}/persons", method: :post} -> {:error, :timeout} end)
-      assert PersonApi.create_person(@client, @create_person_request) == {:error, :timeout}
+      assert PersonApi.create_person(@client, @create_person_attrs) == {:error, :timeout}
     end
   end
 

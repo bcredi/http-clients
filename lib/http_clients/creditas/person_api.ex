@@ -14,12 +14,10 @@ defmodule HttpClients.Creditas.PersonApi do
     end
   end
 
-  @spec create_person(Tesla.Client.t(), Person.t()) :: {:error, any} | {:ok, Person.t()}
-  def create_person(client, %Person{} = person) do
-    person = Map.from_struct(person)
-
-    case Tesla.post(client, "/persons", person) do
-      {:ok, %Tesla.Env{status: 201, body: attrs}} -> {:ok, build_person(attrs)}
+  @spec create_person(Tesla.Client.t(), map()) :: {:error, any} | {:ok, Person.t()}
+  def create_person(client, attrs) do
+    case Tesla.post(client, "/persons", attrs) do
+      {:ok, %Tesla.Env{status: 201, body: response_body}} -> {:ok, build_person(response_body)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
