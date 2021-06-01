@@ -6,7 +6,7 @@ defmodule HttpClients.Creditas.AssetApiTest do
   alias HttpClients.Creditas.AssetApi
   alias HttpClients.Creditas.AssetApi.Asset
 
-  @base_url "https://api.creditas.io/v0/assets"
+  @base_url "https://api.creditas.io/v0"
   @bearer_token "some_jwt_token"
 
   describe "create_person/2" do
