@@ -1,6 +1,6 @@
-defmodule HttpClients.Creditas.AssetsApi.Owner do
+defmodule HttpClients.Creditas.AssetApi.Owner do
   @moduledoc false
-  alias HttpClients.Creditas.AssetsApi.Person
+  alias HttpClients.Creditas.AssetApi.Person
 
   @type t :: %__MODULE__{
           person: Person.t()

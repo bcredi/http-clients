@@ -1,9 +1,8 @@
-defmodule HttpClients.Creditas.AssetsApi.Value do
+defmodule HttpClients.Creditas.AssetApi.Value do
   @moduledoc false
-  alias HttpClients.Creditas.AssetsApi.Amount
 
   @type t :: %__MODULE__{
-          amount: Amount.t()
+          amount: Money.t()
         }
 
   @derive Jason.Encoder

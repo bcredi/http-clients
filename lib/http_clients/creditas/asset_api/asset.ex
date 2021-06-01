@@ -1,6 +1,6 @@
-defmodule HttpClients.Creditas.AssetsApi.Asset do
+defmodule HttpClients.Creditas.AssetApi.Asset do
   @moduledoc false
-  alias HttpClients.Creditas.AssetsApi.{Owner, Value}
+  alias HttpClients.Creditas.AssetApi.{Owner, Value}
 
   @type t :: %__MODULE__{
           id: binary(),
