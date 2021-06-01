@@ -9,7 +9,7 @@ defmodule HttpClients.Creditas.AssetApiTest do
   @base_url "https://api.creditas.io/v0"
   @bearer_token "some_jwt_token"
 
-  describe "create_person/2" do
+  describe "create/2" do
     @client AssetApi.client(@base_url, @bearer_token)
     @response_body %{"id" => "AST-E9264AE3-3785-4D05-A8CB-2E7B26029C2F", "version" => 1}
 
@@ -37,19 +37,19 @@ defmodule HttpClients.Creditas.AssetApiTest do
       end)
 
       expected_asset = %Asset{id: @response_body["id"], version: @response_body["version"]}
-      assert AssetApi.create_asset(@client, @create_asset_attrs) == {:ok, expected_asset}
+      assert AssetApi.create(@client, @create_asset_attrs) == {:ok, expected_asset}
     end
 
     test "returns error when request fails" do
       mock_global(fn %{url: "#{@base_url}/assets", method: :post} -> %Tesla.Env{status: 400} end)
 
-      assert AssetApi.create_asset(@client, @create_asset_attrs) ==
+      assert AssetApi.create(@client, @create_asset_attrs) ==
                {:error, %Tesla.Env{status: 400}}
     end
 
     test "returns error when couldn't call Creditas API" do
       mock_global(fn %{url: "#{@base_url}/assets", method: :post} -> {:error, :timeout} end)
-      assert AssetApi.create_asset(@client, @create_asset_attrs) == {:error, :timeout}
+      assert AssetApi.create(@client, @create_asset_attrs) == {:error, :timeout}
     end
   end
 

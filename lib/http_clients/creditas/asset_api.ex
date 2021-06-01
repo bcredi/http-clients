@@ -3,8 +3,8 @@ defmodule HttpClients.Creditas.AssetApi do
 
   alias HttpClients.Creditas.AssetApi.Asset
 
-  @spec create_asset(Tesla.Client.t(), map()) :: {:error, any} | {:ok, Asset.t()}
-  def create_asset(client, attrs) do
+  @spec create(Tesla.Client.t(), map()) :: {:error, any} | {:ok, Asset.t()}
+  def create(client, attrs) do
     case Tesla.post(client, "/assets", attrs) do
       {:ok, %Tesla.Env{status: 201, body: response_body}} -> {:ok, build_asset(response_body)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
