@@ -3,8 +3,8 @@ defmodule HttpClients.Creditas.PersonApi do
 
   alias HttpClients.Creditas.PersonApi.{Address, Contact, MainDocument, Person}
 
-  @spec get_person_by_cpf(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Person.t()}
-  def get_person_by_cpf(client, cpf) do
+  @spec get_by_cpf(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Person.t()}
+  def get_by_cpf(client, cpf) do
     query = ["mainDocument.code": cpf]
 
     case Tesla.get(client, "/persons", query: query) do
@@ -14,8 +14,8 @@ defmodule HttpClients.Creditas.PersonApi do
     end
   end
 
-  @spec create_person(Tesla.Client.t(), map()) :: {:error, any} | {:ok, Person.t()}
-  def create_person(client, attrs) do
+  @spec create(Tesla.Client.t(), map()) :: {:error, any} | {:ok, Person.t()}
+  def create(client, attrs) do
     case Tesla.post(client, "/persons", attrs) do
       {:ok, %Tesla.Env{status: 201, body: response_body}} -> {:ok, build_person(response_body)}
       {:ok, %Tesla.Env{} = response} -> {:error, response}
@@ -23,8 +23,8 @@ defmodule HttpClients.Creditas.PersonApi do
     end
   end
 
-  @spec update_person(Tesla.Client.t(), Person.t(), map()) :: {:ok, Person.t()} | {:error, any()}
-  def update_person(client, %Person{id: person_id, version: current_version}, attrs) do
+  @spec update(Tesla.Client.t(), Person.t(), map()) :: {:ok, Person.t()} | {:error, any()}
+  def update(client, %Person{id: person_id, version: current_version}, attrs) do
     query = [currentVersion: current_version]
     # This header is only needed on patch requests
     headers = [{"content-type", "application/merge-patch+json"}]

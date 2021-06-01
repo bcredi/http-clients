@@ -112,7 +112,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
     end
   end
 
-  describe "get_person_by_cpf/2" do
+  describe "get_by_cpf/2" do
     @query ["mainDocument.code": @cpf]
     @get_response_body %{"items" => [@response_body]}
 
@@ -121,7 +121,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         %Tesla.Env{status: 200, body: @get_response_body}
       end)
 
-      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:ok, @person}
+      assert PersonApi.get_by_cpf(@client, @cpf) == {:ok, @person}
     end
 
     test "returns person without addresses" do
@@ -132,7 +132,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
       end)
 
       expected_person = @person |> Map.put(:addresses, [])
-      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:ok, expected_person}
+      assert PersonApi.get_by_cpf(@client, @cpf) == {:ok, expected_person}
     end
 
     test "returns person without contacts" do
@@ -143,7 +143,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
       end)
 
       expected_person = @person |> Map.put(:contacts, [])
-      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:ok, expected_person}
+      assert PersonApi.get_by_cpf(@client, @cpf) == {:ok, expected_person}
     end
 
     test "returns error when request fails" do
@@ -151,7 +151,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         %Tesla.Env{status: 400}
       end)
 
-      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:error, %Tesla.Env{status: 400}}
+      assert PersonApi.get_by_cpf(@client, @cpf) == {:error, %Tesla.Env{status: 400}}
     end
 
     test "returns error when couldn't call Creditas API" do
@@ -159,11 +159,11 @@ defmodule HttpClients.Creditas.PersonApiTest do
         {:error, :timeout}
       end)
 
-      assert PersonApi.get_person_by_cpf(@client, @cpf) == {:error, :timeout}
+      assert PersonApi.get_by_cpf(@client, @cpf) == {:error, :timeout}
     end
   end
 
-  describe "create_person/2" do
+  describe "create/2" do
     @create_person_attrs %{
       "fullName" => "Joãozinho Junior",
       "mainDocument" => %{
@@ -177,23 +177,23 @@ defmodule HttpClients.Creditas.PersonApiTest do
         %Tesla.Env{status: 201, body: @response_body}
       end)
 
-      assert PersonApi.create_person(@client, @create_person_attrs) == {:ok, @person}
+      assert PersonApi.create(@client, @create_person_attrs) == {:ok, @person}
     end
 
     test "returns error when request fails" do
       mock_global(fn %{url: "#{@base_url}/persons", method: :post} -> %Tesla.Env{status: 400} end)
 
-      assert PersonApi.create_person(@client, @create_person_attrs) ==
+      assert PersonApi.create(@client, @create_person_attrs) ==
                {:error, %Tesla.Env{status: 400}}
     end
 
     test "returns error when couldn't call Creditas API" do
       mock_global(fn %{url: "#{@base_url}/persons", method: :post} -> {:error, :timeout} end)
-      assert PersonApi.create_person(@client, @create_person_attrs) == {:error, :timeout}
+      assert PersonApi.create(@client, @create_person_attrs) == {:error, :timeout}
     end
   end
 
-  describe "update_person/3" do
+  describe "update/3" do
     @current_version 1
     @query [currentVersion: @current_version]
     @attrs %{
@@ -231,7 +231,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         %Tesla.Env{status: 200, body: expected_response}
       end)
 
-      assert PersonApi.update_person(@client, @person, @attrs) == {:ok, expected_person}
+      assert PersonApi.update(@client, @person, @attrs) == {:ok, expected_person}
     end
 
     test "returns error when request fails" do
@@ -245,7 +245,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         %Tesla.Env{status: 400}
       end)
 
-      assert PersonApi.update_person(@client, @person, @attrs) ==
+      assert PersonApi.update(@client, @person, @attrs) ==
                {:error, %Tesla.Env{status: 400}}
     end
 
@@ -260,7 +260,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         {:error, :timeout}
       end)
 
-      assert PersonApi.update_person(@client, @person, @attrs) == {:error, :timeout}
+      assert PersonApi.update(@client, @person, @attrs) == {:error, :timeout}
     end
   end
 end

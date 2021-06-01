@@ -1,4 +1,4 @@
-defmodule HttpClients.Creditas.AssetsApi.Person do
+defmodule HttpClients.Creditas.AssetApi.Asset do
   @moduledoc false
 
   @type t :: %__MODULE__{
