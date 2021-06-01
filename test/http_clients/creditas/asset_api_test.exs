@@ -4,22 +4,22 @@ defmodule HttpClients.Creditas.AssetApiTest do
   import Tesla.Mock
 
   alias HttpClients.Creditas.AssetApi
-  alias HttpClients.Creditas.AssetApi.{Asset, Owner, Person, Value}
+  alias HttpClients.Creditas.AssetApi.Asset
 
   @base_url "https://api.creditas.io/v0/assets"
   @bearer_token "some_jwt_token"
 
   describe "create_person/2" do
     @client AssetApi.client(@base_url, @bearer_token)
-    @create_asset_attrs %{}
-    @response_body %{
+    @response_body %{"id" => "AST-E9264AE3-3785-4D05-A8CB-2E7B26029C2F", "version" => 1}
+
+    @create_asset_attrs %{
       "type" => "REAL_ESTATE",
       "value" => %{
         "amount" => %{
           "currency" => "BRL",
           "amount" => "33827.00"
-        },
-        "appraisalDate" => "2020-07-14"
+        }
       },
       "owners" => [
         %{
@@ -31,25 +31,13 @@ defmodule HttpClients.Creditas.AssetApiTest do
       ]
     }
 
-    @asset %Asset{
-      type: "REAL_ESTATE",
-      value: %Value{amount: Money.parse!("33827.00", :BRL)},
-      owners: [
-        %Owner{
-          person: %Person{
-            id: "PER-EA178DDC-FDC6-4CF8-AD3F-B02A80567F1F",
-            version: 12
-          }
-        }
-      ]
-    }
-
     test "returns an asset" do
       mock_global(fn %{url: "#{@base_url}/assets", method: :post} ->
         %Tesla.Env{status: 201, body: @response_body}
       end)
 
-      assert AssetApi.create_asset(@client, @create_asset_attrs) == {:ok, @asset}
+      expected_asset = %Asset{id: @response_body["id"], version: @response_body["version"]}
+      assert AssetApi.create_asset(@client, @create_asset_attrs) == {:ok, expected_asset}
     end
 
     test "returns error when request fails" do

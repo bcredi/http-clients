@@ -1,16 +1,12 @@
 defmodule HttpClients.Creditas.AssetApi.Asset do
   @moduledoc false
-  alias HttpClients.Creditas.AssetApi.{Owner, Value}
 
   @type t :: %__MODULE__{
           id: binary(),
-          version: integer(),
-          type: String.t(),
-          owners: List.t(Owner.t()),
-          value: Value.t()
+          version: integer()
         }
 
   @derive Jason.Encoder
-  @enforce_keys ~w(type owners value)a
-  defstruct ~w(id version type owners value)a
+  @enforce_keys ~w(id version)a
+  defstruct ~w(id version)a
 end

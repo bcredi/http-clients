@@ -1,7 +1,7 @@
 defmodule HttpClients.Creditas.AssetApi do
   @moduledoc false
 
-  alias HttpClients.Creditas.AssetApi.{Asset, Owner, Person, Value}
+  alias HttpClients.Creditas.AssetApi.Asset
 
   @spec create_asset(Tesla.Client.t(), map()) :: {:error, any} | {:ok, Asset.t()}
   def create_asset(client, attrs) do
@@ -15,27 +15,8 @@ defmodule HttpClients.Creditas.AssetApi do
   defp build_asset(attrs) do
     %Asset{
       id: attrs["id"],
-      version: attrs["version"],
-      type: attrs["type"],
-      owners: build_owners(attrs["owners"]),
-      value: build_value(attrs["value"])
+      version: attrs["version"]
     }
-  end
-
-  defp build_owners(owners) do
-    Enum.map(owners, fn owner ->
-      %Owner{
-        person: %Person{
-          id: owner["person"]["id"],
-          version: owner["person"]["version"]
-        }
-      }
-    end)
-  end
-
-  defp build_value(value) do
-    amount = value["amount"]
-    %Value{amount: Money.parse!(amount["amount"], amount["currency"])}
   end
 
   @spec client(String.t(), String.t()) :: Tesla.Client.t()
