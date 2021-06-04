@@ -73,7 +73,7 @@ defmodule HttpClients.NeurotechTest do
                Neurotech.compute_bacen_score(client(), credentials(), @person, @transaction_id)
     end
 
-    test "returns empty score when neurotech calculated score isn't a integer" do
+    test "returns empty score when the calculated score is invalid" do
       expected_analysis = %Score{
         score: nil,
         positive_analysis: "- Sem registro de vencidos no histórico.\r\n",
