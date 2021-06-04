@@ -80,7 +80,7 @@ defmodule HttpClients.NeurotechTest do
         negative_analysis: "- LIMITE DE CRÉDITO abaixo de R$1.000,00 no histórico.\r\n"
       }
 
-      response_body = bacen_response(:empty_calc_score)
+      response_body = bacen_response(:empty_score)
       mock(fn %{url: "/submit", method: :post} -> json(response_body) end)
 
       assert Neurotech.compute_bacen_score(client(), credentials(), @person, @transaction_id) ==
