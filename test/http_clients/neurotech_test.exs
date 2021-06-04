@@ -94,7 +94,21 @@ defmodule HttpClients.NeurotechTest do
         negative_analysis: nil
       }
 
-      response_body = bacen_response(:empty_positive_analysis)
+      response_body = bacen_response(:empty_negative_analysis)
+      mock(fn %{url: "/submit", method: :post} -> json(response_body) end)
+
+      assert Neurotech.compute_bacen_score(client(), credentials(), @person, @transaction_id) ==
+               {:ok, expected_analysis}
+    end
+
+    test "computes score with neurotech calc score empty" do
+      expected_analysis = %Score{
+        score: 0,
+        positive_analysis: "- Sem registro de vencidos no histórico.\r\n",
+        negative_analysis: "- LIMITE DE CRÉDITO abaixo de R$1.000,00 no histórico.\r\n"
+      }
+
+      response_body = bacen_response(:empty_calc_score)
       mock(fn %{url: "/submit", method: :post} -> json(response_body) end)
 
       assert Neurotech.compute_bacen_score(client(), credentials(), @person, @transaction_id) ==

@@ -53,7 +53,7 @@ defmodule HttpClients.Fixtures.Neurotech do
     }
   end
 
-  def bacen_response(:empty_positive_analysis) do
+  def bacen_response(:empty_negative_analysis) do
     %{
       "StatusCode" => "0100",
       "Result" => %{
@@ -69,6 +69,28 @@ defmodule HttpClients.Fixtures.Neurotech do
           %{
             "Key" => "CALC_BCREDISCORE_SCORE",
             "Value" => "444"
+          }
+        ]
+      }
+    }
+  end
+
+  def bacen_response(:empty_calc_score) do
+    %{
+      "StatusCode" => "0100",
+      "Result" => %{
+        "Outputs" => [
+          %{
+            "Key" => "CALC_BACEN_PONTOS_NEGATIVOS",
+            "Value" => "- LIMITE DE CRÉDITO abaixo de R$1.000,00 no histórico.\r\n"
+          },
+          %{
+            "Key" => "CALC_BACEN_PONTOS_POSITIVOS",
+            "Value" => "- Sem registro de vencidos no histórico.\r\n"
+          },
+          %{
+            "Key" => "CALC_BCREDISCORE_SCORE",
+            "Value" => ""
           }
         ]
       }
