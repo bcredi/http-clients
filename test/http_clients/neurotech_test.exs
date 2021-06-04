@@ -101,7 +101,7 @@ defmodule HttpClients.NeurotechTest do
                {:ok, expected_analysis}
     end
 
-    test "computes score with neurotech calc score empty" do
+    test "computes score when neurotech calculated score returns empty" do
       expected_analysis = %Score{
         score: nil,
         positive_analysis: "- Sem registro de vencidos no histórico.\r\n",
