@@ -75,7 +75,7 @@ defmodule HttpClients.Fixtures.Neurotech do
     }
   end
 
-  def bacen_response(:empty_calc_score) do
+  def bacen_response(:empty_score) do
     %{
       "StatusCode" => "0100",
       "Result" => %{

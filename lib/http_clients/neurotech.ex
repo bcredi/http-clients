@@ -106,6 +106,12 @@ defmodule HttpClients.Neurotech do
     }
   end
 
+  defp get_score(bacen_analysis) do
+    score = get_value(bacen_analysis, "CALC_BCREDISCORE_SCORE")
+
+    if is_binary(score), do: String.to_integer(score), else: nil
+  end
+
   defp get_value(bacen_analysis, key) do
     bacen_analysis["Result"]["Outputs"]
     |> Enum.find(%{}, &(&1["Key"] == key))
@@ -114,14 +120,6 @@ defmodule HttpClients.Neurotech do
       "" -> nil
       value -> value
     end
-  end
-
-  defp get_score(bacen_analysis) do
-    score = get_value(bacen_analysis, "CALC_BCREDISCORE_SCORE")
-
-    if is_binary(score),
-      do: String.to_integer(score),
-      else: nil
   end
 
   @spec client(String.t()) :: Tesla.Client.t()
