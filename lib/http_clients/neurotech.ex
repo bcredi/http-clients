@@ -121,7 +121,7 @@ defmodule HttpClients.Neurotech do
 
     if is_binary(score),
       do: String.to_integer(score),
-      else: 0
+      else: nil
   end
 
   @spec client(String.t()) :: Tesla.Client.t()

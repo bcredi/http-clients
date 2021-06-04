@@ -103,7 +103,7 @@ defmodule HttpClients.NeurotechTest do
 
     test "computes score with neurotech calc score empty" do
       expected_analysis = %Score{
-        score: 0,
+        score: nil,
         positive_analysis: "- Sem registro de vencidos no histórico.\r\n",
         negative_analysis: "- LIMITE DE CRÉDITO abaixo de R$1.000,00 no histórico.\r\n"
       }
