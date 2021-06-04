@@ -42,7 +42,7 @@ defmodule HttpClients.Neurotech do
   defp approved?(status), do: status == "APROVADO"
 
   @spec compute_bacen_score(Tesla.Client.t(), Credentials.t(), Person.t(), integer(), Keyword.t()) ::
-          {:ok, map()} | {:error, any()}
+          {:ok, Score.t()} | {:error, any()}
   def compute_bacen_score(
         %Tesla.Client{} = client,
         %Credentials{} = credentials,
