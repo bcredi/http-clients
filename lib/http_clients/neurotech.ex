@@ -42,7 +42,7 @@ defmodule HttpClients.Neurotech do
   defp approved?(status), do: status == "APROVADO"
 
   @spec compute_bacen_score(Tesla.Client.t(), Credentials.t(), Person.t(), integer(), Keyword.t()) ::
-          {:ok, map()} | {:error, any()}
+          {:ok, Score.t()} | {:error, any()}
   def compute_bacen_score(
         %Tesla.Client{} = client,
         %Credentials{} = credentials,
@@ -100,10 +100,16 @@ defmodule HttpClients.Neurotech do
 
   defp parse_bacen_analysis(bacen_analysis) do
     %Score{
-      score: get_value(bacen_analysis, "CALC_BCREDISCORE_SCORE") |> String.to_integer(),
+      score: get_score(bacen_analysis),
       positive_analysis: get_value(bacen_analysis, "CALC_BACEN_PONTOS_POSITIVOS"),
-      negative_analysis: bacen_analysis |> get_value("CALC_BACEN_PONTOS_NEGATIVOS")
+      negative_analysis: get_value(bacen_analysis, "CALC_BACEN_PONTOS_NEGATIVOS")
     }
+  end
+
+  defp get_score(bacen_analysis) do
+    score = get_value(bacen_analysis, "CALC_BCREDISCORE_SCORE")
+
+    if is_binary(score), do: String.to_integer(score), else: nil
   end
 
   defp get_value(bacen_analysis, key) do
