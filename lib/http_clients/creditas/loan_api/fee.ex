@@ -1,9 +1,12 @@
 defmodule HttpClients.Creditas.LoanApi.Fee do
   @moduledoc false
 
-  @type t :: %__MODULE__{}
+  @type t :: %__MODULE__{
+          type: String.t(),
+          payer: String.t(),
+          value: integer()
+        }
 
   @derive Jason.Encoder
-  @enforce_keys ~w()a
-  defstruct ~w()a
+  defstruct ~w(type payer value)a
 end

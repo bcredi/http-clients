@@ -1,9 +1,14 @@
 defmodule HttpClients.Creditas.LoanApi.Contract do
   @moduledoc false
 
-  @type t :: %__MODULE__{}
+  @type t :: %__MODULE__{
+          number: String.t(),
+          issuedAt: Date.t(),
+          signedAt: Date.t(),
+          propocoledAt: Date.t()
+        }
 
   @derive Jason.Encoder
-  @enforce_keys ~w()a
-  defstruct ~w()a
+  @enforce_keys ~w(number issuedAt signedAt)a
+  defstruct ~w(number issuedAt signedAt propocoledAt)a
 end

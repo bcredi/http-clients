@@ -37,7 +37,10 @@ defmodule CreditasAcl.LoanApi.Loan do
         }
 
   @derive Jason.Encoder
-  @enforce_keys ~w()a
+  @enforce_keys ~w(key creditor originator underwriter product currency financedAmount installmentsCount
+  installmentFrequency firstInstallmentDueDate lastInstallmentDueDate interestRates amortizationMethod
+  indexation contract collaterals participants)a
+
   defstruct ~w(key contract collaterals participants creditor originator underwriter product currency financedAmount
   installmentsCount installmentFrequency installmentFixedAmount firstInstallmentDueDate lastInstallmentDueDate fees
   taxes interestRates amortizationMethod indexation insurances)a
