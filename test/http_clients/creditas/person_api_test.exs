@@ -45,7 +45,9 @@ defmodule HttpClients.Creditas.PersonApiTest do
         "number" => "2020",
         "zipCode" => "81810111",
         "neighborhood" => "Centro",
-        "complement" => "apto 123"
+        "complement" => "apto 123",
+        "administrativeAreaLevel1" => "PR",
+        "administrativeAreaLevel2" => "Curitiba"
       }
     ]
   }
@@ -83,7 +85,9 @@ defmodule HttpClients.Creditas.PersonApiTest do
         number: "2020",
         street: "Av de bill",
         type: "BILLING",
-        zipCode: "81810111"
+        zipCode: "81810111",
+        administrativeAreaLevel1: "PR",
+        administrativeAreaLevel2: "Curitiba"
       }
     ]
   }
