@@ -74,7 +74,9 @@ defmodule HttpClients.Creditas.PersonApi do
         number: address["number"],
         zipCode: address["zipCode"],
         neighborhood: address["neighborhood"],
-        complement: address["complement"]
+        complement: address["complement"],
+        administrativeAreaLevel1: address["administrativeAreaLevel1"],
+        administrativeAreaLevel2: address["administrativeAreaLevel2"]
       }
     end)
   end

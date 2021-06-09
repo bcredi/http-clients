@@ -8,10 +8,12 @@ defmodule HttpClients.Creditas.PersonApi.Address do
           number: String.t(),
           zipCode: String.t(),
           neighborhood: String.t(),
-          complement: String.t()
+          complement: String.t(),
+          administrativeAreaLevel1: String.t(),
+          administrativeAreaLevel2: String.t()
         }
 
   @derive Jason.Encoder
   @enforce_keys ~w(type country)a
-  defstruct ~w(type country street number zipCode neighborhood complement)a
+  defstruct ~w(type country street number zipCode neighborhood complement administrativeAreaLevel1 administrativeAreaLevel2)a
 end
