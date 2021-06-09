@@ -7,6 +7,5 @@ defmodule HttpClients.Creditas.LoanApi.Indexation do
         }
 
   @derive Jason.Encoder
-  @enforce_keys ~w()a
   defstruct ~w(type inflationIndexType)a
 end

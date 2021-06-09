@@ -10,6 +10,5 @@ defmodule HttpClients.Creditas.LoanApi.Insurance do
         }
 
   @derive Jason.Encoder
-  @enforce_keys ~w()a
   defstruct ~w(company type policyNumber startDate endDate)a
 end

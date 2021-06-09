@@ -9,6 +9,5 @@ defmodule HttpClients.Creditas.LoanApi.InterestRate do
         }
 
   @derive Jason.Encoder
-  @enforce_keys ~w()a
   defstruct ~w(context frequency base value)a
 end

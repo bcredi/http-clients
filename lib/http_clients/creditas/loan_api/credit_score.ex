@@ -7,6 +7,5 @@ defmodule HttpClients.Creditas.LoanApi.CreditScore do
         }
 
   @derive Jason.Encoder
-  @enforce_keys ~w()a
   defstruct ~w(provider value)a
 end

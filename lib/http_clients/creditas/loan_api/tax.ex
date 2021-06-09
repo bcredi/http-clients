@@ -7,6 +7,5 @@ defmodule HttpClients.Creditas.LoanApi.Tax do
         }
 
   @derive Jason.Encoder
-  @enforce_keys ~w()a
   defstruct ~w(type value)a
 end

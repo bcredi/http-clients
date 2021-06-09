@@ -5,10 +5,10 @@ defmodule HttpClients.Creditas.LoanApi.Contract do
           number: String.t(),
           issuedAt: Date.t(),
           signedAt: Date.t(),
-          propocoledAt: Date.t()
+          protocoledAt: Date.t()
         }
 
   @derive Jason.Encoder
   @enforce_keys ~w(number issuedAt signedAt)a
-  defstruct ~w(number issuedAt signedAt propocoledAt)a
+  defstruct ~w(number issuedAt signedAt protocoledAt)a
 end
