@@ -211,7 +211,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
       ]
     }
 
-    test "returns error when loan api times out" do
+    test "returns error when request times out" do
       loan_key = %LoanApi.Key{type: "CREDIT_CERTIFICATE", code: "some_code"}
 
       mock_global(fn %{url: "#{@base_url}/loans", method: :get, query: @query} ->
@@ -236,11 +236,12 @@ defmodule HttpClients.Creditas.LoanApiTest do
         %Tesla.Env{status: 400, body: error_body}
       end)
 
-      assert {:error,
-              %Tesla.Env{
-                body: ^error_body,
-                status: 400
-              }} = LoanApi.get_by_key(@client, loan_key)
+      assert LoanApi.get_by_key(@client, loan_key) ==
+               {:error,
+                %Tesla.Env{
+                  body: error_body,
+                  status: 400
+                }}
     end
 
     test "returns nil when loan is not found" do
@@ -250,7 +251,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
         %Tesla.Env{status: 200, body: %{"items" => []}}
       end)
 
-      assert {:ok, nil} = LoanApi.get_by_key(@client, loan_key)
+      assert LoanApi.get_by_key(@client, loan_key) == {:ok, nil}
     end
 
     test "returns loan" do
@@ -260,7 +261,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
         %Tesla.Env{status: 200, body: @get_response_body}
       end)
 
-      assert {:ok, @loan} = LoanApi.get_by_key(@client, loan_key)
+      assert LoanApi.get_by_key(@client, loan_key) == {:ok, @loan}
     end
   end
 
@@ -276,12 +277,12 @@ defmodule HttpClients.Creditas.LoanApiTest do
         {Tesla.Middleware.BaseUrl, :call, [@base_url]},
         {Tesla.Middleware.Headers, :call, [@headers]},
         {Tesla.Middleware.JSON, :call, [[]]},
-        {Tesla.Middleware.Logger, :call, [[]]},
+        {Tesla.Middleware.Logger, :call, [[filter_headers: ["Authorization"]]]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 120_000]]}
       ]
 
-      assert %Tesla.Client{pre: expected_configs} == LoanApi.client(@base_url, @bearer_token)
+      assert LoanApi.client(@base_url, @bearer_token) == %Tesla.Client{pre: expected_configs}
     end
   end
 end
