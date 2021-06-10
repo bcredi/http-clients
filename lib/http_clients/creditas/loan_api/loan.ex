@@ -1,18 +1,21 @@
-defmodule CreditasAcl.LoanApi.Loan do
+defmodule HttpClients.Creditas.LoanApi.Loan do
   @moduledoc false
 
   alias HttpClients.Creditas.LoanApi.{
     Collateral,
     Contract,
     Fee,
+    Indexation,
     Insurance,
     InterestRate,
     Key,
     Participant,
+    Product,
     Tax
   }
 
   @type t :: %__MODULE__{
+          id: String.t(),
           key: Key.t(),
           contract: Contract.t(),
           product: Product.t(),
@@ -33,7 +36,8 @@ defmodule CreditasAcl.LoanApi.Loan do
           fees: List.t(Fee.t()),
           taxes: List.t(Tax.t()),
           interestRates: List.t(InterestRate.t()),
-          insurances: List.t(Insurance.t())
+          insurances: List.t(Insurance.t()),
+          status: String.t()
         }
 
   @derive Jason.Encoder
@@ -41,7 +45,7 @@ defmodule CreditasAcl.LoanApi.Loan do
                 installmentFrequency firstInstallmentDueDate lastInstallmentDueDate interestRates amortizationMethod
                 indexation contract collaterals participants)a
 
-  defstruct ~w(key contract collaterals participants creditor originator underwriter product currency financedAmount
+  defstruct ~w(id key contract collaterals participants creditor originator underwriter product currency financedAmount
             installmentsCount installmentFrequency installmentFixedAmount firstInstallmentDueDate
-            lastInstallmentDueDate fees taxes interestRates amortizationMethod indexation insurances)a
+            lastInstallmentDueDate fees taxes interestRates amortizationMethod indexation insurances status)a
 end
