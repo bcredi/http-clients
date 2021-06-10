@@ -45,7 +45,7 @@ defmodule HttpClients.Creditas.LoanApi.Loan do
                 installmentFrequency firstInstallmentDueDate lastInstallmentDueDate interestRates amortizationMethod
                 indexation contract collaterals participants)a
 
-  defstruct ~w(id key contract collaterals participants creditor originator underwriter product currency financedAmount
-            installmentsCount installmentFrequency installmentFixedAmount firstInstallmentDueDate
-            lastInstallmentDueDate fees taxes interestRates amortizationMethod indexation insurances status)a
+  defstruct ~w(id status key contract collaterals participants creditor originator underwriter product currency
+            financedAmount installmentsCount installmentFrequency installmentFixedAmount firstInstallmentDueDate
+            lastInstallmentDueDate fees taxes interestRates amortizationMethod indexation insurances)a
 end
