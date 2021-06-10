@@ -14,29 +14,29 @@ defmodule HttpClients.Creditas.LoanApiTest do
     @response_body %{
       "key" => %{
         "type" => "CREDIT_CERTIFICATE",
-        "code" => "TESTE_BCREDI_HOME_PRE_2_LOAN1696"
+        "code" => "BCREDI_LOAN_LOAN1696"
       },
       "id" => "LOA-52AB4FD7-A166-4DA3-9B3B-F94C94A5A622",
       "status" => "ACTIVE",
-      "creditor" => "FIDC_TEMPUS_HOME",
+      "creditor" => "CREDITAS_SCD",
       "originator" => "CREDITAS",
-      "underwriter" => "CHP",
+      "underwriter" => "CREDITAS_SCD",
       "currency" => "BRL",
-      "financedAmount" => 10_768.23,
-      "installmentsCount" => 24,
+      "financedAmount" => 107_512.59,
+      "installmentsCount" => 120,
       "installmentFrequency" => "MONTHLY",
-      "installmentFixedAmount" => 642.67,
+      "installmentFixedAmount" => 1_069.76,
       "firstInstallmentDueDate" => "2020-04-19",
       "lastInstallmentDueDate" => "2022-03-19",
       "amortizationMethod" => "PRICE",
       "contract" => %{
         "number" => "7127054",
-        "issuedAt" => "2017-08-01",
-        "signedAt" => "2017-08-01"
+        "issuedAt" => "2021-04-10",
+        "signedAt" => "2021-04-10"
       },
       "collaterals" => [
         %{
-          "id" => "AST-39FC89D8-DEF8-45F9-B029-DEA368D7551A"
+          "id" => "AST-5EC45F94-F6A5-4A25-9D80-5EC426667436"
         }
       ],
       "participants" => [
@@ -45,7 +45,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
           "authId" => "a9a1fa8e-1d46-4452-b2a9-d57041ef493d",
           "creditScore" => %{
             "provider" => "SERASA",
-            "value" => "999.9"
+            "value" => "600"
           },
           "roles" => [
             "PRINCIPAL_PRIMARIO"
@@ -88,17 +88,18 @@ defmodule HttpClients.Creditas.LoanApiTest do
           "context" => "AMORTIZATION_PLAN",
           "frequency" => "MONTHLY",
           "base" => 360,
-          "value" => 0.0284
+          "value" => 0.0085
         },
         %{
           "context" => "REGULAR_CHARGES",
           "frequency" => "MONTHLY",
           "base" => 365,
-          "value" => 0.028036
+          "value" => 0.0085
         }
       ],
       "indexation" => %{
-        "type" => "FIXED"
+        "type" => "FIXED",
+        "inflationIndexType" => nil
       },
       "disbursements" => [],
       "insurances" => [
@@ -114,29 +115,29 @@ defmodule HttpClients.Creditas.LoanApiTest do
     @loan %LoanApi.Loan{
       key: %LoanApi.Key{
         type: "CREDIT_CERTIFICATE",
-        code: "TESTE_BCREDI_HOME_PRE_2_LOAN1696"
+        code: "BCREDI_LOAN_LOAN1696"
       },
       id: "LOA-52AB4FD7-A166-4DA3-9B3B-F94C94A5A622",
       status: "ACTIVE",
-      creditor: "FIDC_TEMPUS_HOME",
+      creditor: "CREDITAS_SCD",
       originator: "CREDITAS",
-      underwriter: "CHP",
+      underwriter: "CREDITAS_SCD",
       currency: "BRL",
-      financedAmount: 10_768.23,
-      installmentsCount: 24,
+      financedAmount: 107_512.59,
+      installmentsCount: 120,
       installmentFrequency: "MONTHLY",
-      installmentFixedAmount: 642.67,
+      installmentFixedAmount: 1069.76,
       firstInstallmentDueDate: "2020-04-19",
       lastInstallmentDueDate: "2022-03-19",
       amortizationMethod: "PRICE",
       contract: %LoanApi.Contract{
         number: "7127054",
-        issuedAt: "2017-08-01",
-        signedAt: "2017-08-01"
+        issuedAt: "2021-04-10",
+        signedAt: "2021-04-10"
       },
       collaterals: [
         %LoanApi.Collateral{
-          id: "AST-39FC89D8-DEF8-45F9-B029-DEA368D7551A"
+          id: "AST-5EC45F94-F6A5-4A25-9D80-5EC426667436"
         }
       ],
       participants: [
@@ -145,7 +146,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
           authId: "a9a1fa8e-1d46-4452-b2a9-d57041ef493d",
           creditScore: %LoanApi.CreditScore{
             provider: "SERASA",
-            value: "999.9"
+            value: "600"
           },
           roles: [
             "PRINCIPAL_PRIMARIO"
@@ -188,13 +189,13 @@ defmodule HttpClients.Creditas.LoanApiTest do
           context: "AMORTIZATION_PLAN",
           frequency: "MONTHLY",
           base: 360,
-          value: 0.0284
+          value: 0.0085
         },
         %LoanApi.InterestRate{
           context: "REGULAR_CHARGES",
           frequency: "MONTHLY",
           base: 365,
-          value: 0.028036
+          value: 0.0085
         }
       ],
       indexation: %LoanApi.Indexation{
