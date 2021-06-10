@@ -16,13 +16,13 @@ defmodule HttpClients.Creditas.LoanApi do
   end
 
   defp build_loan(attrs) do
-    key = struct_from_map(LoanApi.Key, attrs["key"])
-    contract = struct_from_map(LoanApi.Contract, attrs["contract"])
-    product = struct_from_map(LoanApi.Product, attrs["product"])
-    indexation = struct_from_map(LoanApi.Indexation, attrs["indexation"])
+    key = to_struct(LoanApi.Key, attrs["key"])
+    contract = to_struct(LoanApi.Contract, attrs["contract"])
+    product = to_struct(LoanApi.Product, attrs["product"])
+    indexation = to_struct(LoanApi.Indexation, attrs["indexation"])
 
     LoanApi.Loan
-    |> struct_from_map(attrs)
+    |> to_struct(attrs)
     |> Map.put(:key, key)
     |> Map.put(:contract, contract)
     |> Map.put(:product, product)
@@ -37,51 +37,48 @@ defmodule HttpClients.Creditas.LoanApi do
 
   defp build_collaterals(collaterals) do
     Enum.map(collaterals, fn collateral ->
-      struct_from_map(LoanApi.Collateral, collateral)
+      to_struct(LoanApi.Collateral, collateral)
     end)
   end
 
   defp build_participants(participants) do
     Enum.map(participants, fn participant ->
       credit_score_attrs = participant["creditScore"]
-      credit_score = struct_from_map(LoanApi.CreditScore, credit_score_attrs)
+      credit_score = to_struct(LoanApi.CreditScore, credit_score_attrs)
 
       LoanApi.Participant
-      |> struct_from_map(participant)
+      |> to_struct(participant)
       |> Map.put(:creditScore, credit_score)
     end)
   end
 
   defp build_fees(fees) do
-    Enum.map(fees, fn fee -> struct_from_map(LoanApi.Fee, fee) end)
+    Enum.map(fees, fn fee -> to_struct(LoanApi.Fee, fee) end)
   end
 
   defp build_taxes(taxes) do
-    Enum.map(taxes, fn tax -> struct_from_map(LoanApi.Tax, tax) end)
+    Enum.map(taxes, fn tax -> to_struct(LoanApi.Tax, tax) end)
   end
 
   defp build_interest_rates(interest_rates) do
     Enum.map(interest_rates, fn interest_rate ->
-      struct_from_map(LoanApi.InterestRate, interest_rate)
+      to_struct(LoanApi.InterestRate, interest_rate)
     end)
   end
 
   defp build_insurances(insurances) do
-    Enum.map(insurances, fn insurance -> struct_from_map(LoanApi.Insurance, insurance) end)
+    Enum.map(insurances, fn insurance -> to_struct(LoanApi.Insurance, insurance) end)
   end
 
-  defp struct_from_map(struct_module, %{} = map) when is_atom(struct_module) do
-    attrs =
-      struct_module
-      |> struct(%{})
-      |> Map.drop([:__struct__])
-      |> Map.keys()
-      |> Enum.reduce(%{}, fn struct_key, acc ->
-        string_key = Atom.to_string(struct_key)
-        Map.put(acc, struct_key, map[string_key])
-      end)
+  def to_struct(kind, attrs) do
+    struct = struct(kind)
 
-    struct(struct_module, attrs)
+    Enum.reduce(Map.to_list(struct), struct, fn {k, _}, acc ->
+      case Map.fetch(attrs, Atom.to_string(k)) do
+        {:ok, v} -> %{acc | k => v}
+        :error -> acc
+      end
+    end)
   end
 
   @spec client(String.t(), String.t()) :: Tesla.Client.t()
