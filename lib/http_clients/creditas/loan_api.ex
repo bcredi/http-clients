@@ -67,10 +67,14 @@ defmodule HttpClients.Creditas.LoanApi do
       {"Accept", "application/vnd.creditas.v2+json"}
     ]
 
+    json_opts = [
+      decode_content_types: ["application/vnd.creditas.v2+json"]
+    ]
+
     middlewares = [
       {Tesla.Middleware.BaseUrl, base_url},
       {Tesla.Middleware.Headers, headers},
-      Tesla.Middleware.JSON,
+      {Tesla.Middleware.JSON, json_opts},
       {Tesla.Middleware.Logger, filter_headers: ["Authorization"]},
       {Tesla.Middleware.Retry, delay: 1_000, max_retries: 3},
       {Tesla.Middleware.Timeout, timeout: 120_000}

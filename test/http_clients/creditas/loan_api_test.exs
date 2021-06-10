@@ -266,6 +266,10 @@ defmodule HttpClients.Creditas.LoanApiTest do
   end
 
   describe "client/2" do
+    @decode_content_types [
+      decode_content_types: ["application/vnd.creditas.v2+json"]
+    ]
+
     @headers [
       {"Authorization", "Bearer #{@bearer_token}"},
       {"X-Tenant-Id", "creditasbr"},
