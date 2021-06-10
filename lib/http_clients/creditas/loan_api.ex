@@ -16,29 +16,17 @@ defmodule HttpClients.Creditas.LoanApi do
   end
 
   defp build_loan(attrs) do
-    key_attrs = attrs["key"]
-    conntract_attrs = attrs["contract"]
-    product_attrs = attrs["product"]
-
-    key = %LoanApi.Key{
-      type: key_attrs["type"],
-      code: key_attrs["code"]
-    }
+    %{"key" => key_attrs, "contract" => contract_attrs, "product" => product_attrs} = attrs
+    key = %LoanApi.Key{type: key_attrs["type"], code: key_attrs["code"]}
 
     contract = %LoanApi.Contract{
-      number: conntract_attrs["number"],
-      issuedAt: conntract_attrs["issuedAt"],
-      signedAt: conntract_attrs["signedAt"]
+      number: contract_attrs["number"],
+      issuedAt: contract_attrs["issuedAt"],
+      signedAt: contract_attrs["signedAt"]
     }
 
-    product = %LoanApi.Product{
-      type: product_attrs["type"],
-      subtype: product_attrs["subtype"]
-    }
-
-    indexation = %LoanApi.Indexation{
-      type: attrs["indexation"]["type"]
-    }
+    product = %LoanApi.Product{type: product_attrs["type"], subtype: product_attrs["subtype"]}
+    indexation = %LoanApi.Indexation{type: attrs["indexation"]["type"]}
 
     %LoanApi.Loan{
       key: key,
@@ -68,11 +56,7 @@ defmodule HttpClients.Creditas.LoanApi do
   end
 
   defp build_collaterals(collaterals) do
-    Enum.map(collaterals, fn collateral ->
-      %LoanApi.Collateral{
-        id: collateral["id"]
-      }
-    end)
+    Enum.map(collaterals, fn collateral -> %LoanApi.Collateral{id: collateral["id"]} end)
   end
 
   defp build_participants(participants) do
@@ -95,21 +79,12 @@ defmodule HttpClients.Creditas.LoanApi do
 
   defp build_fees(fees) do
     Enum.map(fees, fn fee ->
-      %LoanApi.Fee{
-        type: fee["type"],
-        payer: fee["payer"],
-        value: fee["value"]
-      }
+      %LoanApi.Fee{type: fee["type"], payer: fee["payer"], value: fee["value"]}
     end)
   end
 
   defp build_taxes(taxes) do
-    Enum.map(taxes, fn tax ->
-      %LoanApi.Tax{
-        type: tax["type"],
-        value: tax["value"]
-      }
-    end)
+    Enum.map(taxes, fn tax -> %LoanApi.Tax{type: tax["type"], value: tax["value"]} end)
   end
 
   defp build_interest_rates(interest_rates) do
@@ -124,11 +99,7 @@ defmodule HttpClients.Creditas.LoanApi do
   end
 
   defp build_insurances(insurances) do
-    Enum.map(insurances, fn insurance ->
-      %LoanApi.Insurance{
-        type: insurance["type"]
-      }
-    end)
+    Enum.map(insurances, fn insurance -> %LoanApi.Insurance{type: insurance["type"]} end)
   end
 
   @spec client(String.t(), String.t()) :: Tesla.Client.t()
