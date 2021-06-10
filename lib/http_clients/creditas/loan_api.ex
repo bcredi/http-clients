@@ -16,90 +16,72 @@ defmodule HttpClients.Creditas.LoanApi do
   end
 
   defp build_loan(attrs) do
-    %{"key" => key_attrs, "contract" => contract_attrs, "product" => product_attrs} = attrs
-    key = %LoanApi.Key{type: key_attrs["type"], code: key_attrs["code"]}
+    key = struct_from_map(LoanApi.Key, attrs["key"])
+    contract = struct_from_map(LoanApi.Contract, attrs["contract"])
+    product = struct_from_map(LoanApi.Product, attrs["product"])
+    indexation = struct_from_map(LoanApi.Indexation, attrs["indexation"])
 
-    contract = %LoanApi.Contract{
-      number: contract_attrs["number"],
-      issuedAt: contract_attrs["issuedAt"],
-      signedAt: contract_attrs["signedAt"]
-    }
-
-    product = %LoanApi.Product{type: product_attrs["type"], subtype: product_attrs["subtype"]}
-    indexation = %LoanApi.Indexation{type: attrs["indexation"]["type"]}
-
-    %LoanApi.Loan{
-      key: key,
-      id: attrs["id"],
-      status: attrs["status"],
-      creditor: attrs["creditor"],
-      originator: attrs["originator"],
-      underwriter: attrs["underwriter"],
-      currency: attrs["currency"],
-      financedAmount: attrs["financedAmount"],
-      installmentsCount: attrs["installmentsCount"],
-      installmentFrequency: attrs["installmentFrequency"],
-      installmentFixedAmount: attrs["installmentFixedAmount"],
-      firstInstallmentDueDate: attrs["firstInstallmentDueDate"],
-      lastInstallmentDueDate: attrs["lastInstallmentDueDate"],
-      amortizationMethod: attrs["amortizationMethod"],
-      contract: contract,
-      collaterals: build_collaterals(attrs["collaterals"]),
-      participants: build_participants(attrs["participants"]),
-      product: product,
-      fees: build_fees(attrs["fees"]),
-      taxes: build_taxes(attrs["taxes"]),
-      interestRates: build_interest_rates(attrs["interestRates"]),
-      indexation: indexation,
-      insurances: build_insurances(attrs["insurances"])
-    }
+    LoanApi.Loan
+    |> struct_from_map(attrs)
+    |> Map.put(:key, key)
+    |> Map.put(:contract, contract)
+    |> Map.put(:product, product)
+    |> Map.put(:indexation, indexation)
+    |> Map.put(:collaterals, build_collaterals(attrs["collaterals"]))
+    |> Map.put(:participants, build_participants(attrs["participants"]))
+    |> Map.put(:fees, build_fees(attrs["fees"]))
+    |> Map.put(:taxes, build_taxes(attrs["taxes"]))
+    |> Map.put(:interestRates, build_interest_rates(attrs["interestRates"]))
+    |> Map.put(:insurances, build_insurances(attrs["insurances"]))
   end
 
   defp build_collaterals(collaterals) do
-    Enum.map(collaterals, fn collateral -> %LoanApi.Collateral{id: collateral["id"]} end)
+    Enum.map(collaterals, fn collateral ->
+      struct_from_map(LoanApi.Collateral, collateral)
+    end)
   end
 
   defp build_participants(participants) do
     Enum.map(participants, fn participant ->
       credit_score_attrs = participant["creditScore"]
+      credit_score = struct_from_map(LoanApi.CreditScore, credit_score_attrs)
 
-      credit_score = %LoanApi.CreditScore{
-        provider: credit_score_attrs["provider"],
-        value: credit_score_attrs["value"]
-      }
-
-      %LoanApi.Participant{
-        id: participant["id"],
-        authId: participant["authId"],
-        creditScore: credit_score,
-        roles: participant["roles"]
-      }
+      LoanApi.Participant
+      |> struct_from_map(participant)
+      |> Map.put(:creditScore, credit_score)
     end)
   end
 
   defp build_fees(fees) do
-    Enum.map(fees, fn fee ->
-      %LoanApi.Fee{type: fee["type"], payer: fee["payer"], value: fee["value"]}
-    end)
+    Enum.map(fees, fn fee -> struct_from_map(LoanApi.Fee, fee) end)
   end
 
   defp build_taxes(taxes) do
-    Enum.map(taxes, fn tax -> %LoanApi.Tax{type: tax["type"], value: tax["value"]} end)
+    Enum.map(taxes, fn tax -> struct_from_map(LoanApi.Tax, tax) end)
   end
 
   defp build_interest_rates(interest_rates) do
     Enum.map(interest_rates, fn interest_rate ->
-      %LoanApi.InterestRate{
-        context: interest_rate["context"],
-        frequency: interest_rate["frequency"],
-        base: interest_rate["base"],
-        value: interest_rate["value"]
-      }
+      struct_from_map(LoanApi.InterestRate, interest_rate)
     end)
   end
 
   defp build_insurances(insurances) do
-    Enum.map(insurances, fn insurance -> %LoanApi.Insurance{type: insurance["type"]} end)
+    Enum.map(insurances, fn insurance -> struct_from_map(LoanApi.Insurance, insurance) end)
+  end
+
+  defp struct_from_map(struct_module, %{} = map) when is_atom(struct_module) do
+    attrs =
+      struct_module
+      |> struct(%{})
+      |> Map.drop([:__struct__])
+      |> Map.keys()
+      |> Enum.reduce(%{}, fn struct_key, acc ->
+        string_key = Atom.to_string(struct_key)
+        Map.put(acc, struct_key, map[string_key])
+      end)
+
+    struct(struct_module, attrs)
   end
 
   @spec client(String.t(), String.t()) :: Tesla.Client.t()
