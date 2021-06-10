@@ -129,7 +129,7 @@ defmodule HttpClients.Neurotech do
       Tesla.Middleware.JSON,
       {Tesla.Middleware.Retry, delay: 1_000, max_retries: 3},
       {Tesla.Middleware.Timeout, timeout: 120_000},
-      Tesla.Middleware.Logger
+      {Tesla.Middleware.Logger, filter_headers: ["Authorization"]}
     ]
 
     Tesla.client(middlewares)

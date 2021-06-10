@@ -23,7 +23,7 @@ defmodule HttpClients.UnderwriterTest do
          ]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 15_000]]},
-        {Tesla.Middleware.Logger, :call, [[]]},
+        {Tesla.Middleware.Logger, :call, [[filter_headers: ["Authorization"]]]},
         {Goodies.Tesla.Middleware.RequestIdForwarder, :call, [[]]}
       ]
 

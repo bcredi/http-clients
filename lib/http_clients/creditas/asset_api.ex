@@ -25,7 +25,7 @@ defmodule HttpClients.Creditas.AssetApi do
       {Tesla.Middleware.BaseUrl, base_url},
       {Tesla.Middleware.Headers, [{"Authorization", "Bearer #{bearer_token}"}]},
       Tesla.Middleware.JSON,
-      Tesla.Middleware.Logger,
+      {Tesla.Middleware.Logger, filter_headers: ["Authorization"]},
       {Tesla.Middleware.Retry, delay: 1_000, max_retries: 3},
       {Tesla.Middleware.Timeout, timeout: 120_000}
     ]

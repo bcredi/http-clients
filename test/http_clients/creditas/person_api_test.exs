@@ -108,7 +108,7 @@ defmodule HttpClients.Creditas.PersonApiTest do
         {Tesla.Middleware.JSON, :call, [@decode_content_types]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 120_000]]},
-        {Tesla.Middleware.Logger, :call, [[]]},
+        {Tesla.Middleware.Logger, :call, [[filter_headers: ["Authorization"]]]},
         {Tesla.Middleware.Headers, :call, [@headers]}
       ]
 

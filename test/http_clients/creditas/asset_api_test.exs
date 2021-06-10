@@ -63,7 +63,7 @@ defmodule HttpClients.Creditas.AssetApiTest do
         {Tesla.Middleware.BaseUrl, :call, [@base_url]},
         {Tesla.Middleware.Headers, :call, [@headers]},
         {Tesla.Middleware.JSON, :call, [[]]},
-        {Tesla.Middleware.Logger, :call, [[]]},
+        {Tesla.Middleware.Logger, :call, [[filter_headers: ["Authorization"]]]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 120_000]]}
       ]

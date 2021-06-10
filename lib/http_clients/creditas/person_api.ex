@@ -94,7 +94,7 @@ defmodule HttpClients.Creditas.PersonApi do
       {Tesla.Middleware.JSON, json_opts},
       {Tesla.Middleware.Retry, delay: 1_000, max_retries: 3},
       {Tesla.Middleware.Timeout, timeout: 120_000},
-      Tesla.Middleware.Logger,
+      {Tesla.Middleware.Logger, filter_headers: ["Authorization"]},
       {Tesla.Middleware.Headers, headers}
     ]
 
