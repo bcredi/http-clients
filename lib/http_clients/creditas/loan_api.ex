@@ -27,18 +27,12 @@ defmodule HttpClients.Creditas.LoanApi do
     |> Map.put(:contract, contract)
     |> Map.put(:product, product)
     |> Map.put(:indexation, indexation)
-    |> Map.put(:collaterals, build_collaterals(attrs["collaterals"]))
     |> Map.put(:participants, build_participants(attrs["participants"]))
-    |> Map.put(:fees, build_fees(attrs["fees"]))
-    |> Map.put(:taxes, build_taxes(attrs["taxes"]))
-    |> Map.put(:interestRates, build_interest_rates(attrs["interestRates"]))
-    |> Map.put(:insurances, build_insurances(attrs["insurances"]))
-  end
-
-  defp build_collaterals(collaterals) do
-    Enum.map(collaterals, fn collateral ->
-      to_struct(LoanApi.Collateral, collateral)
-    end)
+    |> Map.put(:collaterals, to_struct_list(LoanApi.Collateral, attrs["collaterals"]))
+    |> Map.put(:fees, to_struct_list(LoanApi.Fee, attrs["fees"]))
+    |> Map.put(:taxes, to_struct_list(LoanApi.Tax, attrs["taxes"]))
+    |> Map.put(:interestRates, to_struct_list(LoanApi.InterestRate, attrs["interestRates"]))
+    |> Map.put(:insurances, to_struct_list(LoanApi.Insurance, attrs["insurances"]))
   end
 
   defp build_participants(participants) do
@@ -52,25 +46,9 @@ defmodule HttpClients.Creditas.LoanApi do
     end)
   end
 
-  defp build_fees(fees) do
-    Enum.map(fees, fn fee -> to_struct(LoanApi.Fee, fee) end)
-  end
+  defp to_struct_list(kind, values), do: Enum.map(values, &to_struct(kind, &1))
 
-  defp build_taxes(taxes) do
-    Enum.map(taxes, fn tax -> to_struct(LoanApi.Tax, tax) end)
-  end
-
-  defp build_interest_rates(interest_rates) do
-    Enum.map(interest_rates, fn interest_rate ->
-      to_struct(LoanApi.InterestRate, interest_rate)
-    end)
-  end
-
-  defp build_insurances(insurances) do
-    Enum.map(insurances, fn insurance -> to_struct(LoanApi.Insurance, insurance) end)
-  end
-
-  def to_struct(kind, attrs) do
+  defp to_struct(kind, attrs) do
     struct = struct(kind)
 
     Enum.reduce(Map.to_list(struct), struct, fn {k, _}, acc ->
