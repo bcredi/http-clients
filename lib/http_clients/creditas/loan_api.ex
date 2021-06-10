@@ -3,7 +3,7 @@ defmodule HttpClients.Creditas.LoanApi do
 
   alias HttpClients.Creditas.LoanApi
 
-  @spec get_by_key(Tesla.Client.t(), Key.t()) :: {:error, any} | {:ok, Loan.t()}
+  @spec get_by_key(Tesla.Client.t(), Key.t()) :: {:error, any} | {:ok, Loan.t() | nil}
   def get_by_key(client, %LoanApi.Key{} = key) do
     query = ["key.code": key.code, "key.type": key.type]
 
