@@ -19,7 +19,6 @@ defmodule HttpClients.Creditas.AssetApiTest do
               Tesla.Middleware.JSON
             ])
 
-    @client AssetApi.client(@base_url, @bearer_token)
     @response_body %{"id" => "AST-E9264AE3-3785-4D05-A8CB-2E7B26029C2F", "version" => 1}
 
     @create_asset_attrs %{
