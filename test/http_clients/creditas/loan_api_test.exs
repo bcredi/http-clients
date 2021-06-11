@@ -25,6 +25,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
   @client Tesla.client(@middlewares)
 
   describe "get_by_key/2" do
+    @loan_key %LoanApi.Key{type: "CREDIT_CERTIFICATE", code: "some_code"}
     @query ["key.code": "some_code", "key.type": "CREDIT_CERTIFICATE"]
     @get_response_body %{
       "items" => [
@@ -230,8 +231,6 @@ defmodule HttpClients.Creditas.LoanApiTest do
     }
 
     test "returns error when request times out" do
-      loan_key = %LoanApi.Key{type: "CREDIT_CERTIFICATE", code: "some_code"}
-
       mock_global(fn %{url: "#{@base_url}/loans", method: :get, query: @query} ->
         {:error, :timeout}
       end)
@@ -240,8 +239,6 @@ defmodule HttpClients.Creditas.LoanApiTest do
     end
 
     test "returns error when request is not accepted" do
-      loan_key = %LoanApi.Key{type: "CREDIT_CERTIFICATE", code: "some_code"}
-
       error_body = %{
         "code" => "INPUT_VALIDATION_ERROR",
         "message" => "Some fields are not valid.",
@@ -262,8 +259,6 @@ defmodule HttpClients.Creditas.LoanApiTest do
     end
 
     test "returns nil when loan is not found" do
-      loan_key = %LoanApi.Key{type: "CREDIT_CERTIFICATE", code: "some_code"}
-
       mock_global(fn %{url: "#{@base_url}/loans", method: :get, query: @query} ->
         %Tesla.Env{status: 200, body: %{"items" => []}}
       end)
@@ -272,8 +267,6 @@ defmodule HttpClients.Creditas.LoanApiTest do
     end
 
     test "returns loan" do
-      loan_key = %LoanApi.Key{type: "CREDIT_CERTIFICATE", code: "some_code"}
-
       mock_global(fn %{url: "#{@base_url}/loans", method: :get, query: @query} ->
         %Tesla.Env{status: 200, body: @get_response_body}
       end)
