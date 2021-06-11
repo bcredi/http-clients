@@ -55,7 +55,7 @@ defmodule HttpClients.ScrAuthorizer do
       {Tesla.Middleware.Headers, headers},
       {Tesla.Middleware.Retry, delay: 1_000, max_retries: 3},
       {Tesla.Middleware.Timeout, timeout: 30_000},
-      Tesla.Middleware.Logger,
+      {Tesla.Middleware.Logger, filter_headers: ["Authorization"]},
       Goodies.Tesla.Middleware.RequestIdForwarder
     ]
 

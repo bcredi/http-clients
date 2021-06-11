@@ -10,7 +10,15 @@ defmodule HttpClients.Creditas.AssetApiTest do
   @bearer_token "some_jwt_token"
 
   describe "create/2" do
-    @client AssetApi.client(@base_url, @bearer_token)
+    @headers [
+      {"Authorization", "Bearer #{@bearer_token}"}
+    ]
+    @client Tesla.client([
+              {Tesla.Middleware.BaseUrl, @base_url},
+              {Tesla.Middleware.Headers, @headers},
+              Tesla.Middleware.JSON
+            ])
+
     @response_body %{"id" => "AST-E9264AE3-3785-4D05-A8CB-2E7B26029C2F", "version" => 1}
 
     @create_asset_attrs %{
@@ -54,16 +62,12 @@ defmodule HttpClients.Creditas.AssetApiTest do
   end
 
   describe "client/2" do
-    @headers [
-      {"Authorization", "Bearer #{@bearer_token}"}
-    ]
-
     test "returns a tesla client" do
       expected_configs = [
         {Tesla.Middleware.BaseUrl, :call, [@base_url]},
         {Tesla.Middleware.Headers, :call, [@headers]},
         {Tesla.Middleware.JSON, :call, [[]]},
-        {Tesla.Middleware.Logger, :call, [[]]},
+        {Tesla.Middleware.Logger, :call, [[filter_headers: ["Authorization"]]]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 120_000]]}
       ]
