@@ -324,58 +324,12 @@ defmodule HttpClients.Creditas.LoanApiTest do
       "insurances" => [%{"type" => "MIP"}, %{"type" => "DFI"}]
     }
 
-    @create_loan_response %{
-      "id" => "LOA-9CD1A8A3-8A6A-4497-8044-AB6EE62D69F9",
-      "key" => %{"type" => "CREDIT_CERTIFICATE", "code" => "BCREDI_LOAN_TESTE_11061542"},
-      "status" => "ACTIVE",
-      "contract" => %{
-        "number" => "bcredi_tentativa_10",
-        "issuedAt" => "2021-04-10",
-        "signedAt" => "2021-04-10"
-      },
-      "collaterals" => [%{"id" => "AST-5EC45F94-F6A5-4A25-9D80-5EC426667436"}],
-      "participants" => [
-        %{
-          "id" => "PER-335C78F1-90EC-4AA7-BBFA-999820149A7F",
-          "authId" => "586c73b2-2406-4885-b9b6-f1d208598a87",
-          "creditScore" => %{"provider" => "SERASA", "value" => "600"},
-          "roles" => ["PRINCIPAL_PRIMARIO"]
-        }
-      ],
-      "creditor" => "CREDITAS_SCD",
-      "originator" => "CREDITAS",
-      "underwriter" => "CREDITAS_SCD",
-      "product" => %{"type" => "HOME", "subtype" => "BCREDI_HOME_REFINANCING"},
-      "currency" => "BRL",
-      "financedAmount" => 107_512.59,
-      "installmentsCount" => 120,
-      "installmentFrequency" => "MONTHLY",
-      "installmentFixedAmount" => 1069.76,
-      "firstInstallmentDueDate" => "2021-07-14",
-      "lastInstallmentDueDate" => "2031-06-14",
-      "fees" => [],
-      "taxes" => [%{"type" => "IOF", "value" => 1249.16}, %{"type" => "TAC", "value" => 0.0}],
-      "interestRates" => [
-        %{
-          "context" => "AMORTIZATION_PLAN",
-          "frequency" => "MONTHLY",
-          "base" => 360,
-          "value" => 0.0085
-        },
-        %{
-          "context" => "REGULAR_CHARGES",
-          "frequency" => "MONTHLY",
-          "base" => 360,
-          "value" => 0.0085
-        }
-      ],
-      "amortizationMethod" => "PRICE",
-      "indexation" => %{"type" => "FIXED"},
-      "disbursements" => [],
-      "insurances" => [%{"type" => "MIP"}, %{"type" => "DFI"}],
-      "createdAt" => "2021-06-11T19:09:51.846853Z",
-      "updatedAt" => "2021-06-11T19:09:52.080832Z"
-    }
+    @create_loan_response @create_loan_attrs
+                          |> Map.put("id", "LOA-9CD1A8A3-8A6A-4497-8044-AB6EE62D69F9")
+                          |> Map.put("status", "ACTIVE")
+                          |> Map.put("createdAt", "2021-06-11T19:09:51.846853Z")
+                          |> Map.put("disbursements", [])
+                          |> Map.put("updatedAt", "2021-06-11T19:09:52.080832Z")
 
     @loan %LoanApi.Loan{
       status: "ACTIVE",
@@ -411,7 +365,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
           value: 0.0085
         }
       ],
-      key: %LoanApi.Key{code: "BCREDI_LOAN_TESTE_11061542", type: "CREDIT_CERTIFICATE"},
+      key: %LoanApi.Key{code: "BCREDI_LOAN_TESTE_11061543", type: "CREDIT_CERTIFICATE"},
       lastInstallmentDueDate: "2031-06-14",
       originator: "CREDITAS",
       participants: [
