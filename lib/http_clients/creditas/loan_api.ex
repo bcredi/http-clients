@@ -15,6 +15,15 @@ defmodule HttpClients.Creditas.LoanApi do
     end
   end
 
+  @spec create(Tesla.Client.t(), map()) :: {:error, any} | {:ok, Loan.t()}
+  def create(client, %{} = loan_attrs) do
+    case Tesla.post(client, "/loans", loan_attrs) do
+      {:ok, %Tesla.Env{status: 200, body: response_body}} -> {:ok, build_loan(response_body)}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   defp build_loan(attrs) do
     key = to_struct(LoanApi.Key, attrs["key"])
     contract = to_struct(LoanApi.Contract, attrs["contract"])
