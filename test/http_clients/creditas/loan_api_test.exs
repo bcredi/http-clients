@@ -26,107 +26,110 @@ defmodule HttpClients.Creditas.LoanApiTest do
 
   describe "get_by_key/2" do
     @query ["key.code": "some_code", "key.type": "CREDIT_CERTIFICATE"]
-    @response_body %{
-      "key" => %{
-        "type" => "CREDIT_CERTIFICATE",
-        "code" => "BCREDI_LOAN_LOAN1696"
-      },
-      "id" => "LOA-52AB4FD7-A166-4DA3-9B3B-F94C94A5A622",
-      "status" => "ACTIVE",
-      "creditor" => "CREDITAS_SCD",
-      "originator" => "CREDITAS",
-      "underwriter" => "CREDITAS_SCD",
-      "currency" => "BRL",
-      "financedAmount" => 107_512.59,
-      "installmentsCount" => 120,
-      "installmentFrequency" => "MONTHLY",
-      "installmentFixedAmount" => 1_069.76,
-      "firstInstallmentDueDate" => "2020-04-19",
-      "lastInstallmentDueDate" => "2022-03-19",
-      "amortizationMethod" => "PRICE",
-      "contract" => %{
-        "number" => "7127054",
-        "issuedAt" => "2021-04-10",
-        "signedAt" => "2021-04-10"
-      },
-      "collaterals" => [
+    @get_response_body %{
+      "items" => [
         %{
-          "id" => "AST-5EC45F94-F6A5-4A25-9D80-5EC426667436"
-        }
-      ],
-      "participants" => [
-        %{
-          "id" => "PER-335C78F1-90EC-4AA7-BBFA-999820149A7F",
-          "authId" => "a9a1fa8e-1d46-4452-b2a9-d57041ef493d",
-          "creditScore" => %{
-            "provider" => "SERASA",
-            "value" => "600"
+          "key" => %{
+            "type" => "CREDIT_CERTIFICATE",
+            "code" => "BCREDI_LOAN_LOAN1696"
           },
-          "roles" => [
-            "PRINCIPAL_PRIMARIO"
+          "id" => "LOA-52AB4FD7-A166-4DA3-9B3B-F94C94A5A622",
+          "status" => "ACTIVE",
+          "creditor" => "CREDITAS_SCD",
+          "originator" => "CREDITAS",
+          "underwriter" => "CREDITAS_SCD",
+          "currency" => "BRL",
+          "financedAmount" => 107_512.59,
+          "installmentsCount" => 120,
+          "installmentFrequency" => "MONTHLY",
+          "installmentFixedAmount" => 1_069.76,
+          "firstInstallmentDueDate" => "2020-04-19",
+          "lastInstallmentDueDate" => "2022-03-19",
+          "amortizationMethod" => "PRICE",
+          "contract" => %{
+            "number" => "7127054",
+            "issuedAt" => "2021-04-10",
+            "signedAt" => "2021-04-10"
+          },
+          "collaterals" => [
+            %{
+              "id" => "AST-5EC45F94-F6A5-4A25-9D80-5EC426667436"
+            }
+          ],
+          "participants" => [
+            %{
+              "id" => "PER-335C78F1-90EC-4AA7-BBFA-999820149A7F",
+              "authId" => "a9a1fa8e-1d46-4452-b2a9-d57041ef493d",
+              "creditScore" => %{
+                "provider" => "SERASA",
+                "value" => "600"
+              },
+              "roles" => [
+                "PRINCIPAL_PRIMARIO"
+              ]
+            }
+          ],
+          "product" => %{
+            "type" => "HOME",
+            "subtype" => "BCREDI_HOME_REFINANCING"
+          },
+          "fees" => [
+            %{
+              "type" => "OPENING",
+              "payer" => "CLIENT",
+              "value" => 50.0
+            },
+            %{
+              "type" => "REGISTRY",
+              "payer" => "CLIENT",
+              "value" => 50.0
+            },
+            %{
+              "type" => "TAG",
+              "payer" => "CLIENT",
+              "value" => 50.0
+            }
+          ],
+          "taxes" => [
+            %{
+              "type" => "IOF",
+              "value" => 286.16
+            },
+            %{
+              "type" => "TAC",
+              "value" => 600.0
+            }
+          ],
+          "interestRates" => [
+            %{
+              "context" => "AMORTIZATION_PLAN",
+              "frequency" => "MONTHLY",
+              "base" => 360,
+              "value" => 0.0085
+            },
+            %{
+              "context" => "REGULAR_CHARGES",
+              "frequency" => "MONTHLY",
+              "base" => 365,
+              "value" => 0.0085
+            }
+          ],
+          "indexation" => %{
+            "type" => "FIXED",
+            "inflationIndexType" => nil
+          },
+          "disbursements" => [],
+          "insurances" => [
+            %{
+              "type" => "MIP"
+            },
+            %{
+              "type" => "DFI"
+            }
           ]
-        }
-      ],
-      "product" => %{
-        "type" => "HOME",
-        "subtype" => "BCREDI_HOME_REFINANCING"
-      },
-      "fees" => [
-        %{
-          "type" => "OPENING",
-          "payer" => "CLIENT",
-          "value" => 50.0
-        },
-        %{
-          "type" => "REGISTRY",
-          "payer" => "CLIENT",
-          "value" => 50.0
-        },
-        %{
-          "type" => "TAG",
-          "payer" => "CLIENT",
-          "value" => 50.0
-        }
-      ],
-      "taxes" => [
-        %{
-          "type" => "IOF",
-          "value" => 286.16
-        },
-        %{
-          "type" => "TAC",
-          "value" => 600.0
-        }
-      ],
-      "interestRates" => [
-        %{
-          "context" => "AMORTIZATION_PLAN",
-          "frequency" => "MONTHLY",
-          "base" => 360,
-          "value" => 0.0085
-        },
-        %{
-          "context" => "REGULAR_CHARGES",
-          "frequency" => "MONTHLY",
-          "base" => 365,
-          "value" => 0.0085
-        }
-      ],
-      "indexation" => %{
-        "type" => "FIXED",
-        "inflationIndexType" => nil
-      },
-      "disbursements" => [],
-      "insurances" => [
-        %{
-          "type" => "MIP"
-        },
-        %{
-          "type" => "DFI"
         }
       ]
     }
-    @get_response_body %{"items" => [@response_body]}
     @loan %LoanApi.Loan{
       key: %LoanApi.Key{
         type: "CREDIT_CERTIFICATE",
