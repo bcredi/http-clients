@@ -235,7 +235,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
         {:error, :timeout}
       end)
 
-      assert {:error, :timeout} = LoanApi.get_by_key(@client, loan_key)
+      assert {:error, :timeout} = LoanApi.get_by_key(@client, @loan_key)
     end
 
     test "returns error when request is not accepted" do
@@ -255,7 +255,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
               %Tesla.Env{
                 body: ^error_body,
                 status: 400
-              }} = LoanApi.get_by_key(@client, loan_key)
+              }} = LoanApi.get_by_key(@client, @loan_key)
     end
 
     test "returns nil when loan is not found" do
@@ -263,7 +263,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
         %Tesla.Env{status: 200, body: %{"items" => []}}
       end)
 
-      assert LoanApi.get_by_key(@client, loan_key) == {:ok, nil}
+      assert LoanApi.get_by_key(@client, @loan_key) == {:ok, nil}
     end
 
     test "returns loan" do
@@ -271,7 +271,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
         %Tesla.Env{status: 200, body: @get_response_body}
       end)
 
-      assert LoanApi.get_by_key(@client, loan_key) == {:ok, @loan}
+      assert LoanApi.get_by_key(@client, @loan_key) == {:ok, @loan}
     end
   end
 
