@@ -7,9 +7,24 @@ defmodule HttpClients.Creditas.LoanApiTest do
 
   @base_url "https://api.creditas.io"
   @bearer_token "some_jwt_token"
+  @json_opts [decode_content_types: ["application/vnd.creditas.v2+json"]]
+
+  @headers [
+    {"Authorization", "Bearer #{@bearer_token}"},
+    {"X-Tenant-Id", "creditasbr"},
+    {"Accept", "application/vnd.creditas.v2+json"}
+  ]
+
+  @middlewares [
+    {Tesla.Middleware.BaseUrl, @base_url},
+    {Tesla.Middleware.Headers, @headers},
+    {Tesla.Middleware.JSON, @json_opts},
+    {Tesla.Middleware.Logger, filter_headers: ["Authorization"]}
+  ]
+
+  @client Tesla.client(@middlewares)
 
   describe "get_by_key/2" do
-    @client LoanApi.client(@base_url, @bearer_token)
     @query ["key.code": "some_code", "key.type": "CREDIT_CERTIFICATE"]
     @response_body %{
       "key" => %{
@@ -238,7 +253,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
 
       assert {:error,
               %Tesla.Env{
-                body: error_body,
+                body: ^error_body,
                 status: 400
               }} = LoanApi.get_by_key(@client, loan_key)
     end
@@ -265,21 +280,13 @@ defmodule HttpClients.Creditas.LoanApiTest do
   end
 
   describe "client/2" do
-    @decode_content_types [
-      decode_content_types: ["application/vnd.creditas.v2+json"]
-    ]
-
-    @headers [
-      {"Authorization", "Bearer #{@bearer_token}"},
-      {"X-Tenant-Id", "creditasbr"},
-      {"Accept", "application/vnd.creditas.v2+json"}
-    ]
-
     test "returns a tesla client" do
+      decode_content_types = [decode_content_types: ["application/vnd.creditas.v2+json"]]
+
       expected_configs = [
         {Tesla.Middleware.BaseUrl, :call, [@base_url]},
         {Tesla.Middleware.Headers, :call, [@headers]},
-        {Tesla.Middleware.JSON, :call, [[]]},
+        {Tesla.Middleware.JSON, :call, [decode_content_types]},
         {Tesla.Middleware.Logger, :call, [[filter_headers: ["Authorization"]]]},
         {Tesla.Middleware.Retry, :call, [[delay: 1000, max_retries: 3]]},
         {Tesla.Middleware.Timeout, :call, [[timeout: 120_000]]}

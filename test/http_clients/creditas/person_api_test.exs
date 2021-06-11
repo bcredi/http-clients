@@ -6,9 +6,21 @@ defmodule HttpClients.Creditas.PersonApiTest do
   alias HttpClients.Creditas.PersonApi
   alias HttpClients.Creditas.PersonApi.{Address, Contact, MainDocument, Person}
 
-  @base_url "https://api.creditas.io/persons"
+  @base_url "https://api.creditas.io"
   @bearer_token "some_jwt_token"
-  @client PersonApi.client(@base_url, @bearer_token)
+  @json_opts [decode_content_types: ["application/vnd.creditas.v2+json"]]
+  @headers [
+    {"Authorization", "Bearer #{@bearer_token}"},
+    {"X-Tenant-Id", "creditasbr"},
+    {"Accept", "application/vnd.creditas.v1+json"}
+  ]
+
+  @client Tesla.client([
+            {Tesla.Middleware.BaseUrl, @base_url},
+            {Tesla.Middleware.Headers, @headers},
+            {Tesla.Middleware.JSON, @json_opts}
+          ])
+
   @person_id UUID.uuid4()
   @cpf "45658265002"
 
@@ -95,11 +107,6 @@ defmodule HttpClients.Creditas.PersonApiTest do
   describe "client/2" do
     @decode_content_types [
       decode_content_types: ["application/vnd.creditas.v1+json"]
-    ]
-    @headers [
-      {"Authorization", "Bearer #{@bearer_token}"},
-      {"X-Tenant-Id", "creditasbr"},
-      {"Accept", "application/vnd.creditas.v1+json"}
     ]
 
     test "returns a tesla client" do
@@ -208,10 +215,10 @@ defmodule HttpClients.Creditas.PersonApiTest do
 
     @update_headers [
       {"content-type", "application/merge-patch+json"},
-      {"content-type", "application/json"},
       {"Authorization", "Bearer some_jwt_token"},
       {"X-Tenant-Id", "creditasbr"},
-      {"Accept", "application/vnd.creditas.v1+json"}
+      {"Accept", "application/vnd.creditas.v1+json"},
+      {"content-type", "application/json"}
     ]
 
     test "updates a person" do
