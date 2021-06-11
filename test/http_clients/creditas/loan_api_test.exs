@@ -236,12 +236,11 @@ defmodule HttpClients.Creditas.LoanApiTest do
         %Tesla.Env{status: 400, body: error_body}
       end)
 
-      assert LoanApi.get_by_key(@client, loan_key) ==
-               {:error,
-                %Tesla.Env{
-                  body: error_body,
-                  status: 400
-                }}
+      assert {:error,
+              %Tesla.Env{
+                body: error_body,
+                status: 400
+              }} = LoanApi.get_by_key(@client, loan_key)
     end
 
     test "returns nil when loan is not found" do
