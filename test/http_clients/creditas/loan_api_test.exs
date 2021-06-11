@@ -398,7 +398,7 @@ defmodule HttpClients.Creditas.LoanApiTest do
 
     test "returns loan" do
       mock_global(fn %{url: "#{@base_url}/loans", method: :post} ->
-        %Tesla.Env{status: 200, body: @create_loan_response}
+        %Tesla.Env{status: 201, body: @create_loan_response}
       end)
 
       assert LoanApi.create(@client, @create_loan_attrs) == {:ok, @loan}
