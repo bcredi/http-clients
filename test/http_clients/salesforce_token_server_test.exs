@@ -98,19 +98,23 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
     test "requests a new token when expired by default ttl", %{pid: pid} do
       {_, config_without_ttl} = Keyword.pop!(@config, :ttl_in_seconds)
-
       expired_issued_at = DateTime.utc_now() |> DateTime.add(-3600 * 24, :second)
       expired_token = Map.put(@token, :issued_at, expired_issued_at)
-
-      Agent.update(pid, fn state ->
-        %{state | token: expired_token, config: config_without_ttl}
-      end)
 
       mock_global(fn %{method: :post, url: "#{@salesforce_url}/services/oauth2/token"} ->
         json(@token_response)
       end)
 
+      Agent.update(pid, fn state ->
+        %{state | token: expired_token, config: config_without_ttl}
+      end)
+
       assert SalesforceTokenServer.get_token(pid) == @token
+
+      Agent.update(pid, fn state ->
+        %{state | token: expired_token, config: config_without_ttl}
+      end)
+
       assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
     end
   end
