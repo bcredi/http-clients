@@ -5,6 +5,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
   alias HttpClients.SalesforceTokenServer
 
   @salesforce_url "https://login.salesforce.com"
+  @one_day_in_seconds 3600 * 24
 
   @config [
     url: @salesforce_url,
@@ -13,7 +14,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
     username: "fulano@creditas.com",
     password: "somepassword123",
     grant_type: "password",
-    ttl_in_seconds: 3600 * 24 * 5
+    ttl_in_seconds: @one_day_in_seconds * 5
   ]
 
   @token_response %{
@@ -83,7 +84,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
     test "requests a new token when expired", %{pid: pid} do
       expiration_in_seconds = @config[:ttl_in_seconds]
-      expired_issued_at = DateTime.utc_now() |> DateTime.add(-1 * expiration_in_seconds, :second)
+      expired_issued_at = DateTime.utc_now() |> DateTime.add(-expiration_in_seconds, :second)
       expired_token = Map.put(@token, :issued_at, expired_issued_at)
 
       Agent.update(pid, fn state -> %{state | token: expired_token} end)
@@ -95,7 +96,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
     test "requests a new token when expired by default ttl", %{pid: pid} do
       {_, config_without_ttl} = Keyword.pop!(@config, :ttl_in_seconds)
-      expired_issued_at = DateTime.utc_now() |> DateTime.add(-3600 * 24, :second)
+      expired_issued_at = DateTime.utc_now() |> DateTime.add(-@one_day_in_seconds, :second)
       expired_token = Map.put(@token, :issued_at, expired_issued_at)
 
       Agent.update(pid, fn state ->
