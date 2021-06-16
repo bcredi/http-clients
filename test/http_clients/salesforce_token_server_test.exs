@@ -92,7 +92,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
       Agent.update(pid, fn state -> %{state | token: expired_token} end)
       assert SalesforceTokenServer.get_token(pid) == @token
 
-      Agent.update(pid, fn state -> %{state | token: expired_token} end)
+      Agent.update(SalesforceTokenServer, fn state -> %{state | token: expired_token} end)
       assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
     end
 
@@ -107,7 +107,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
       assert SalesforceTokenServer.get_token(pid) == @token
 
-      Agent.update(pid, fn state ->
+      Agent.update(SalesforceTokenServer, fn state ->
         %{state | token: expired_token, config: config_without_ttl}
       end)
 
