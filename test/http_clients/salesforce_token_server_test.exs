@@ -5,6 +5,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
   alias HttpClients.SalesforceTokenServer
 
   @salesforce_url "https://login.salesforce.com"
+  @one_day_in_seconds 3600 * 24
 
   @config [
     url: @salesforce_url,
@@ -12,7 +13,8 @@ defmodule HttpClients.SalesforceTokenServerTest do
     client_secret: "some client_secret",
     username: "fulano@creditas.com",
     password: "somepassword123",
-    grant_type: "password"
+    grant_type: "password",
+    ttl_in_seconds: @one_day_in_seconds * 5
   ]
 
   @token_response %{
@@ -75,7 +77,39 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
   describe "get_token/1" do
     test "returns a token", %{pid: pid} do
+      valid_token = Map.put(@token, :issued_at, DateTime.utc_now())
+      Agent.update(pid, fn state -> %{state | token: valid_token} end)
+      assert SalesforceTokenServer.get_token(pid) == valid_token
+      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == valid_token
+    end
+
+    test "requests a new token when expired", %{pid: pid} do
+      expiration_in_seconds = @config[:ttl_in_seconds]
+      expired_issued_at = DateTime.utc_now() |> DateTime.add(-expiration_in_seconds, :second)
+      expired_token = Map.put(@token, :issued_at, expired_issued_at)
+
+      Agent.update(pid, fn state -> %{state | token: expired_token} end)
       assert SalesforceTokenServer.get_token(pid) == @token
+
+      Agent.update(SalesforceTokenServer, fn state -> %{state | token: expired_token} end)
+      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
+    end
+
+    test "requests a new token when expired by default ttl", %{pid: pid} do
+      {_, config_without_ttl} = Keyword.pop!(@config, :ttl_in_seconds)
+      expired_issued_at = DateTime.utc_now() |> DateTime.add(-@one_day_in_seconds, :second)
+      expired_token = Map.put(@token, :issued_at, expired_issued_at)
+
+      Agent.update(pid, fn state ->
+        %{state | token: expired_token, config: config_without_ttl}
+      end)
+
+      assert SalesforceTokenServer.get_token(pid) == @token
+
+      Agent.update(SalesforceTokenServer, fn state ->
+        %{state | token: expired_token, config: config_without_ttl}
+      end)
+
       assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
     end
   end
@@ -111,7 +145,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
   describe "set_token/2" do
     test "stores a token", %{pid: pid} do
-      token = %ExForce.OAuthResponse{}
+      token = %ExForce.OAuthResponse{issued_at: DateTime.utc_now()}
       :ok = SalesforceTokenServer.set_token(pid, token)
       assert SalesforceTokenServer.get_token(pid) == token
       assert SalesforceTokenServer.get_token(SalesforceTokenServer) == token

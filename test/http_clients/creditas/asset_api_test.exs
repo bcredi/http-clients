@@ -23,11 +23,18 @@ defmodule HttpClients.Creditas.AssetApiTest do
 
     @create_asset_attrs %{
       "type" => "REAL_ESTATE",
+      "key" => %{
+        "type" => "DEED_NUMBER",
+        "code" => "VALIDACAO_BCREDI_1"
+      },
       "value" => %{
         "amount" => %{
           "currency" => "BRL",
           "amount" => "33827.00"
         }
+      },
+      "assetDetail" => %{
+        "realEstateType" => "APARTMENT"
       },
       "owners" => [
         %{
