@@ -12,7 +12,8 @@ defmodule HttpClients.SalesforceTokenServerTest do
     client_secret: "some client_secret",
     username: "fulano@creditas.com",
     password: "somepassword123",
-    grant_type: "password"
+    grant_type: "password",
+    ttl_in_seconds: 3600 * 24 * 5
   ]
 
   @token_response %{
@@ -80,11 +81,30 @@ defmodule HttpClients.SalesforceTokenServerTest do
     end
 
     test "returns a new token when expired", %{pid: pid} do
-      one_day_in_seconds = -3600 * 24
+      expiration_in_seconds = @config[:ttl_in_seconds]
+      expired_issued_at = DateTime.utc_now() |> DateTime.add(-1 * expiration_in_seconds, :second)
+      expired_token = Map.put(@token, :issued_at, expired_issued_at)
 
-      invalid_issued_at = DateTime.utc_now() |> DateTime.add(one_day_in_seconds, :second)
-      expired_token = Map.put(@token, :issued_at, invalid_issued_at)
+      mock_global(fn %{method: :post, url: "#{@salesforce_url}/services/oauth2/token"} ->
+        json(@token_response)
+      end)
+
       Agent.update(pid, fn state -> %{state | token: expired_token} end)
+      assert SalesforceTokenServer.get_token(pid) == @token
+
+      Agent.update(pid, fn state -> %{state | token: expired_token} end)
+      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
+    end
+
+    test "returns a new token when expired by default ttl", %{pid: pid} do
+      {_, config_without_ttl} = Keyword.pop!(@config, :ttl_in_seconds)
+
+      expired_issued_at = DateTime.utc_now() |> DateTime.add(-3600 * 24, :second)
+      expired_token = Map.put(@token, :issued_at, expired_issued_at)
+
+      Agent.update(pid, fn state ->
+        %{state | token: expired_token, config: config_without_ttl}
+      end)
 
       mock_global(fn %{method: :post, url: "#{@salesforce_url}/services/oauth2/token"} ->
         json(@token_response)

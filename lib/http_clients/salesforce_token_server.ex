@@ -39,7 +39,8 @@ if Code.ensure_loaded?(ExForce) do
       client_secret: "some client_secret",
       username: "fulano@creditas.com",
       password: "somepassword123",
-      grant_type: "password"
+      grant_type: "password",
+      ttl_in_seconds: 86400
     ]
     {:ok, token} = HttpClients.SalesforceTokenServer.request_new_token(config)
     HttpClients.SalesforceTokenServer.set_token(MyApp.SalesforceTokenServer, token)
@@ -75,13 +76,13 @@ if Code.ensure_loaded?(ExForce) do
     @doc "Gets a token from the given TokenServer"
     @spec get_token(atom() | pid()) :: ExForce.OAuthResponse.t()
     def get_token(server) when is_token_server(server) do
-      token = Agent.get(server, & &1[:token])
+      state = Agent.get(server, & &1)
 
-      if token_expired?(token) do
+      if token_expired?(state) do
         :ok = update_token(server)
         Agent.get(server, & &1[:token])
       else
-        token
+        state[:token]
       end
     end
 
@@ -101,11 +102,12 @@ if Code.ensure_loaded?(ExForce) do
       Agent.update(server, &Map.put(&1, :token, new_token))
     end
 
-    @token_time_to_live 3600 * 24
-
-    defp token_expired?(%{issued_at: token_issued_at}) do
+    @one_day_in_seconds 3600 * 24
+    defp token_expired?(%{token: token, config: config}) do
+      %{issued_at: token_issued_at} = token
+      {time_to_live, _} = Keyword.pop(config, :ttl_in_seconds, @one_day_in_seconds)
       token_time_alive = DateTime.diff(DateTime.utc_now(), token_issued_at)
-      token_time_alive >= @token_time_to_live
+      token_time_alive >= time_to_live
     end
   end
 end
