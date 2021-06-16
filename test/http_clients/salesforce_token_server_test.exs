@@ -22,7 +22,6 @@ defmodule HttpClients.SalesforceTokenServerTest do
     "instance_url" => "https://example.com",
     "id" => "https://example.com/id/fakeid",
     "token_type" => "Bearer",
-    # issued_at: cant be changed for this token; ExForce checks it with the signature
     "issued_at" => "1505149885697",
     "signature" => "+HM1VVxVzTAkwHLmcEiRrFoQDEiZm8H0QfALenayXg0="
   }
