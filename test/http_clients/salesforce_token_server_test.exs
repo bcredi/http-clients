@@ -21,6 +21,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
     "instance_url" => "https://example.com",
     "id" => "https://example.com/id/fakeid",
     "token_type" => "Bearer",
+    # issued_at: cant be changed for this token; ExForce checks it with the signature
     "issued_at" => "1505149885697",
     "signature" => "+HM1VVxVzTAkwHLmcEiRrFoQDEiZm8H0QfALenayXg0="
   }
@@ -85,10 +86,6 @@ defmodule HttpClients.SalesforceTokenServerTest do
       expired_issued_at = DateTime.utc_now() |> DateTime.add(-1 * expiration_in_seconds, :second)
       expired_token = Map.put(@token, :issued_at, expired_issued_at)
 
-      mock_global(fn %{method: :post, url: "#{@salesforce_url}/services/oauth2/token"} ->
-        json(@token_response)
-      end)
-
       Agent.update(pid, fn state -> %{state | token: expired_token} end)
       assert SalesforceTokenServer.get_token(pid) == @token
 
@@ -100,10 +97,6 @@ defmodule HttpClients.SalesforceTokenServerTest do
       {_, config_without_ttl} = Keyword.pop!(@config, :ttl_in_seconds)
       expired_issued_at = DateTime.utc_now() |> DateTime.add(-3600 * 24, :second)
       expired_token = Map.put(@token, :issued_at, expired_issued_at)
-
-      mock_global(fn %{method: :post, url: "#{@salesforce_url}/services/oauth2/token"} ->
-        json(@token_response)
-      end)
 
       Agent.update(pid, fn state ->
         %{state | token: expired_token, config: config_without_ttl}
