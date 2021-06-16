@@ -78,6 +78,21 @@ defmodule HttpClients.SalesforceTokenServerTest do
       assert SalesforceTokenServer.get_token(pid) == @token
       assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
     end
+
+    test "returns a new token when expired", %{pid: pid} do
+      one_day_in_seconds = -3600 * 24
+
+      invalid_issued_at = DateTime.utc_now() |> DateTime.add(one_day_in_seconds, :second)
+      expired_token = Map.put(@token, :issued_at, invalid_issued_at)
+      Agent.update(pid, fn state -> %{state | token: expired_token} end)
+
+      mock_global(fn %{method: :post, url: "#{@salesforce_url}/services/oauth2/token"} ->
+        json(@token_response)
+      end)
+
+      assert SalesforceTokenServer.get_token(pid) == @token
+      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
+    end
   end
 
   describe "update_token/1" do
@@ -111,7 +126,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
   describe "set_token/2" do
     test "stores a token", %{pid: pid} do
-      token = %ExForce.OAuthResponse{}
+      token = %ExForce.OAuthResponse{issued_at: DateTime.utc_now()}
       :ok = SalesforceTokenServer.set_token(pid, token)
       assert SalesforceTokenServer.get_token(pid) == token
       assert SalesforceTokenServer.get_token(SalesforceTokenServer) == token

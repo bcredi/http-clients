@@ -75,7 +75,14 @@ if Code.ensure_loaded?(ExForce) do
     @doc "Gets a token from the given TokenServer"
     @spec get_token(atom() | pid()) :: ExForce.OAuthResponse.t()
     def get_token(server) when is_token_server(server) do
-      Agent.get(server, & &1[:token])
+      token = Agent.get(server, & &1[:token])
+
+      if token_expired?(token) do
+        :ok = update_token(server)
+        Agent.get(server, & &1[:token])
+      else
+        token
+      end
     end
 
     @doc "Request an authenticated token to Salesforce and set it to the given TokenServer"
@@ -92,6 +99,13 @@ if Code.ensure_loaded?(ExForce) do
     def set_token(server, %ExForce.OAuthResponse{} = new_token) when is_token_server(server) do
       Logger.info("Setting new Salesforce token for #{inspect(server)}")
       Agent.update(server, &Map.put(&1, :token, new_token))
+    end
+
+    @token_time_to_live 3600 * 24
+
+    defp token_expired?(%{issued_at: token_issued_at}) do
+      token_time_alive = DateTime.diff(DateTime.utc_now(), token_issued_at)
+      token_time_alive >= @token_time_to_live
     end
   end
 end
