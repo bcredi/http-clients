@@ -78,8 +78,10 @@ defmodule HttpClients.SalesforceTokenServerTest do
 
   describe "get_token/1" do
     test "returns a token", %{pid: pid} do
-      assert SalesforceTokenServer.get_token(pid) == @token
-      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
+      valid_token = Map.put(@token, :issued_at, DateTime.utc_now())
+      Agent.update(pid, fn state -> %{state | token: valid_token} end)
+      assert SalesforceTokenServer.get_token(pid) == valid_token
+      assert SalesforceTokenServer.get_token(SalesforceTokenServer) == valid_token
     end
 
     test "requests a new token when expired", %{pid: pid} do
