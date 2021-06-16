@@ -275,6 +275,136 @@ defmodule HttpClients.Creditas.LoanApiTest do
     end
   end
 
+  describe "create/2" do
+    @create_loan_attrs %{
+      "key" => %{"type" => "CREDIT_CERTIFICATE", "code" => "BCREDI_LOAN_TESTE_11061543"},
+      "contract" => %{
+        "number" => "bcredi_tentativa_10",
+        "issuedAt" => "2021-04-10",
+        "signedAt" => "2021-04-10"
+      },
+      "collaterals" => [%{"id" => "AST-5EC45F94-F6A5-4A25-9D80-5EC426667436"}],
+      "participants" => [
+        %{
+          "id" => "PER-335C78F1-90EC-4AA7-BBFA-999820149A7F",
+          "authId" => "586c73b2-2406-4885-b9b6-f1d208598a87",
+          "creditScore" => %{"provider" => "SERASA", "value" => "600"},
+          "roles" => ["PRINCIPAL_PRIMARIO"]
+        }
+      ],
+      "creditor" => "CREDITAS_SCD",
+      "originator" => "CREDITAS",
+      "underwriter" => "CREDITAS_SCD",
+      "product" => %{"type" => "HOME", "subtype" => "BCREDI_HOME_REFINANCING"},
+      "currency" => "BRL",
+      "financedAmount" => 107_512.59,
+      "installmentsCount" => 120,
+      "installmentFrequency" => "MONTHLY",
+      "installmentFixedAmount" => 1069.76,
+      "firstInstallmentDueDate" => "2021-07-14",
+      "lastInstallmentDueDate" => "2031-06-14",
+      "fees" => [],
+      "taxes" => [%{"type" => "IOF", "value" => 1249.16}, %{"type" => "TAC", "value" => 0}],
+      "interestRates" => [
+        %{
+          "context" => "AMORTIZATION_PLAN",
+          "frequency" => "MONTHLY",
+          "base" => 360,
+          "value" => 0.0085
+        },
+        %{
+          "context" => "REGULAR_CHARGES",
+          "frequency" => "MONTHLY",
+          "base" => 360,
+          "value" => 0.0085
+        }
+      ],
+      "amortizationMethod" => "PRICE",
+      "indexation" => %{"type" => "FIXED"},
+      "insurances" => [%{"type" => "MIP"}, %{"type" => "DFI"}]
+    }
+
+    @create_loan_response @create_loan_attrs
+                          |> Map.put("id", "LOA-9CD1A8A3-8A6A-4497-8044-AB6EE62D69F9")
+                          |> Map.put("status", "ACTIVE")
+                          |> Map.put("createdAt", "2021-06-11T19:09:51.846853Z")
+                          |> Map.put("disbursements", [])
+                          |> Map.put("updatedAt", "2021-06-11T19:09:52.080832Z")
+
+    @loan %LoanApi.Loan{
+      status: "ACTIVE",
+      amortizationMethod: "PRICE",
+      collaterals: [%LoanApi.Collateral{id: "AST-5EC45F94-F6A5-4A25-9D80-5EC426667436"}],
+      contract: %LoanApi.Contract{
+        issuedAt: "2021-04-10",
+        number: "bcredi_tentativa_10",
+        signedAt: "2021-04-10"
+      },
+      creditor: "CREDITAS_SCD",
+      currency: "BRL",
+      fees: [],
+      financedAmount: 107_512.59,
+      firstInstallmentDueDate: "2021-07-14",
+      id: "LOA-9CD1A8A3-8A6A-4497-8044-AB6EE62D69F9",
+      indexation: %LoanApi.Indexation{inflationIndexType: nil, type: "FIXED"},
+      installmentFixedAmount: 1069.76,
+      installmentFrequency: "MONTHLY",
+      installmentsCount: 120,
+      insurances: [%LoanApi.Insurance{type: "MIP"}, %LoanApi.Insurance{type: "DFI"}],
+      interestRates: [
+        %LoanApi.InterestRate{
+          base: 360,
+          context: "AMORTIZATION_PLAN",
+          frequency: "MONTHLY",
+          value: 0.0085
+        },
+        %LoanApi.InterestRate{
+          base: 360,
+          context: "REGULAR_CHARGES",
+          frequency: "MONTHLY",
+          value: 0.0085
+        }
+      ],
+      key: %LoanApi.Key{code: "BCREDI_LOAN_TESTE_11061543", type: "CREDIT_CERTIFICATE"},
+      lastInstallmentDueDate: "2031-06-14",
+      originator: "CREDITAS",
+      participants: [
+        %LoanApi.Participant{
+          authId: "586c73b2-2406-4885-b9b6-f1d208598a87",
+          creditScore: %LoanApi.CreditScore{provider: "SERASA", value: "600"},
+          id: "PER-335C78F1-90EC-4AA7-BBFA-999820149A7F",
+          roles: ["PRINCIPAL_PRIMARIO"]
+        }
+      ],
+      product: %LoanApi.Product{subtype: "BCREDI_HOME_REFINANCING", type: "HOME"},
+      taxes: [
+        %LoanApi.Tax{type: "IOF", value: 1249.16},
+        %LoanApi.Tax{type: "TAC", value: 0.0}
+      ],
+      underwriter: "CREDITAS_SCD"
+    }
+
+    test "returns error when couldn't call Creditas API" do
+      mock_global(fn %{url: "#{@base_url}/loans", method: :post} -> {:error, :timeout} end)
+      assert LoanApi.create(@client, @create_loan_attrs) == {:error, :timeout}
+    end
+
+    test "returns error when request fails" do
+      mock_global(fn %{url: "#{@base_url}/loans", method: :post} -> %Tesla.Env{status: 400} end)
+
+      assert LoanApi.create(@client, @create_loan_attrs) ==
+               {:error, %Tesla.Env{status: 400}}
+    end
+
+    test "returns loan" do
+      mock_global(fn %{url: "#{@base_url}/loans", method: :post} ->
+        %Tesla.Env{status: 201, body: @create_loan_response}
+      end)
+
+      assert LoanApi.create(@client, @create_loan_attrs) == {:ok, @loan}
+    end
+  end
+
   describe "client/2" do
     test "returns a tesla client" do
       decode_content_types = [decode_content_types: ["application/vnd.creditas.v2+json"]]
