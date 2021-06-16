@@ -80,7 +80,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
       assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
     end
 
-    test "returns a new token when expired", %{pid: pid} do
+    test "requests a new token when expired", %{pid: pid} do
       expiration_in_seconds = @config[:ttl_in_seconds]
       expired_issued_at = DateTime.utc_now() |> DateTime.add(-1 * expiration_in_seconds, :second)
       expired_token = Map.put(@token, :issued_at, expired_issued_at)
@@ -96,7 +96,7 @@ defmodule HttpClients.SalesforceTokenServerTest do
       assert SalesforceTokenServer.get_token(SalesforceTokenServer) == @token
     end
 
-    test "returns a new token when expired by default ttl", %{pid: pid} do
+    test "requests a new token when expired by default ttl", %{pid: pid} do
       {_, config_without_ttl} = Keyword.pop!(@config, :ttl_in_seconds)
 
       expired_issued_at = DateTime.utc_now() |> DateTime.add(-3600 * 24, :second)
