@@ -98,6 +98,45 @@ defmodule HttpClients.UnderwriterTest do
     end
   end
 
+  describe "get_main_proponent/2" do
+    test "returns error when the proponent doesn't exist" do
+      proponent_id = UUID.uuid4()
+      proponents_url = "#{@base_url}/v1/main-proponents/#{proponent_id}"
+
+      mock(fn %{method: :get, url: ^proponents_url} ->
+        %Tesla.Env{status: 404, body: %{"errors" => %{"detail" => "Not Found"}}}
+      end)
+
+      assert {:error, %Tesla.Env{body: response_body, status: 404}} =
+               Underwriter.get_main_proponent(client(), proponent_id)
+
+      expected_response_body = %{"errors" => %{"detail" => "Not Found"}}
+      assert response_body == expected_response_body
+    end
+
+    test "returns error when service is unavailable" do
+      proponent_id = UUID.uuid4()
+      proponents_url = "#{@base_url}/v1/main-proponents/#{proponent_id}"
+
+      mock(fn %{method: :get, url: ^proponents_url} -> {:error, :timeout} end)
+
+      assert Underwriter.get_main_proponent(client(), proponent_id) == {:error, :timeout}
+    end
+
+    test "returns a proponent" do
+      proponent_id = UUID.uuid4()
+      proponents_url = "#{@base_url}/v1/main-proponents/#{proponent_id}"
+      expected_response = %{"id" => proponent_id, "proposal_id" => UUID.uuid4()}
+
+      mock(fn %{method: :get, url: ^proponents_url} -> json(expected_response) end)
+
+      assert {:ok, %Tesla.Env{body: response_body, status: 200}} =
+               Underwriter.get_main_proponent(client(), proponent_id)
+
+      assert response_body == expected_response
+    end
+  end
+
   describe "update_proponent/2" do
     test "returns a proponent" do
       proponent_id = UUID.uuid4()
