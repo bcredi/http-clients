@@ -25,14 +25,9 @@ defmodule HttpClients.Underwriter do
   @spec get_proposal(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Tesla.Env.t()}
   def get_proposal(%Tesla.Client{} = client, proposal_id) do
     case Tesla.get(client, "/v1/proposals/#{proposal_id}") do
-      {:ok, %Tesla.Env{status: 200} = response} ->
-        {:ok, response}
-
-      {:ok, %Tesla.Env{} = response} ->
-        {:error, response}
-
-      {:error, reason} ->
-        {:error, reason}
+      {:ok, %Tesla.Env{status: 200} = response} -> {:ok, response}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
     end
   end
 
