@@ -130,17 +130,16 @@ defmodule HttpClients.UnderwriterTest do
 
     test "returns a proposal" do
       proposal_id = UUID.uuid4()
+      sales_stage = "open"
       proposals_url = "#{@base_url}/v1/proposals/#{proposal_id}"
 
       mock(fn %{method: :get, url: ^proposals_url} ->
-        json(%{"id" => proposal_id})
+        proposal = %{"id" => proposal_id, "sales_stage" => sales_stage}
+        json(%{"data" => proposal}, status: 200)
       end)
 
-      assert {:ok, %Tesla.Env{body: response_body, status: 200}} =
+      assert {:ok, %Proposal{id: ^proposal_id, sales_stage: ^sales_stage}} =
                Underwriter.get_proposal(client(), proposal_id)
-
-      expected_response_body = %{"id" => proposal_id}
-      assert response_body == expected_response_body
     end
   end
 
