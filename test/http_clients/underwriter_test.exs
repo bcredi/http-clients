@@ -124,8 +124,7 @@ defmodule HttpClients.UnderwriterTest do
       assert {:error, %Tesla.Env{body: response_body, status: 404}} =
                Underwriter.get_proposal(client(), proposal_id)
 
-      expected_response_body = %{"errors" => %{"detail" => "Not Found"}}
-      assert response_body == expected_response_body
+      assert response_body == %{"errors" => %{"detail" => "Not Found"}}
     end
 
     test "returns a proposal" do
