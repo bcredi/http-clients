@@ -101,7 +101,7 @@ defmodule HttpClients.UnderwriterTest do
       proponent_id = UUID.uuid4()
       proponents_url = "#{@base_url}/v1/proponents/#{proponent_id}"
       mock(fn %{method: :get, url: ^proponents_url} -> {:error, :timeout} end)
-      assert {:error, :timeout} = Underwriter.get_proponent(client(), proponent_id)
+      assert Underwriter.get_proponent(client(), proponent_id) == {:error, :timeout}
     end
   end
 
