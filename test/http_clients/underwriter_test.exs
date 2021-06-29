@@ -107,6 +107,7 @@ defmodule HttpClients.UnderwriterTest do
 
   describe "get_proposal/2" do
     @proposal_id UUID.uuid4()
+    @proposal_url "#{@base_url}/v1/proposals/#{@proposal_id}"
     @get_proposal_response %{
       "data" => %{
         "id" => @proposal_id,
@@ -170,32 +171,23 @@ defmodule HttpClients.UnderwriterTest do
     }
 
     test "returns error when fails" do
-      proposal_id = UUID.uuid4()
-      proposals_url = "#{@base_url}/v1/proposals/#{proposal_id}"
-      mock(fn %{method: :get, url: ^proposals_url} -> {:error, :timeout} end)
-      assert {:error, :timeout} = Underwriter.get_proposal(client(), proposal_id)
+      mock(fn %{method: :get, url: @proposal_url} -> {:error, :timeout} end)
+      assert {:error, :timeout} = Underwriter.get_proposal(client(), @proposal_id)
     end
 
     test "returns error when the proposal doesn't exist" do
-      proposal_id = UUID.uuid4()
-      proposals_url = "#{@base_url}/v1/proposals/#{proposal_id}"
-
-      mock(fn %{method: :get, url: ^proposals_url} ->
+      mock(fn %{method: :get, url: @proposal_url} ->
         %Tesla.Env{status: 404, body: %{"errors" => %{"detail" => "Not Found"}}}
       end)
 
       assert {:error, %Tesla.Env{body: response_body, status: 404}} =
-               Underwriter.get_proposal(client(), proposal_id)
+               Underwriter.get_proposal(client(), @proposal_id)
 
       assert response_body == %{"errors" => %{"detail" => "Not Found"}}
     end
 
     test "returns a proposal" do
-      proposals_url = "#{@base_url}/v1/proposals/#{@proposal_id}"
-
-      mock(fn %{method: :get, url: ^proposals_url} ->
-        json(@get_proposal_response, status: 200)
-      end)
+      mock(fn %{method: :get, url: @proposal_url} -> json(@get_proposal_response, status: 200) end)
 
       assert {:ok, @expected_proposal} = Underwriter.get_proposal(client(), @proposal_id)
     end
