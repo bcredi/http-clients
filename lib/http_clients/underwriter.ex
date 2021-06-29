@@ -2,7 +2,7 @@ defmodule HttpClients.Underwriter do
   @moduledoc """
   Client for Underwriter calls
   """
-  alias HttpClients.Underwriter.{Proponent, Proposal}
+  alias HttpClients.Underwriter.{CreditAnalysis, Partner, Proponent, Proposal, ProposalSimulation}
 
   @spec get_proponent(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Tesla.Env.t()}
   def get_proponent(%Tesla.Client{} = client, proponent_id) do
@@ -73,17 +73,65 @@ defmodule HttpClients.Underwriter do
   @spec update_proposal(Tesla.Client.t(), Proposal.t()) :: {:error, any} | {:ok, Proposal.t()}
   def update_proposal(%Tesla.Client{} = client, %Proposal{} = proposal) do
     case Tesla.put(client, "/v1/proposals/#{proposal.id}", proposal) do
-      {:ok, %Tesla.Env{status: 200} = response} -> {:ok, build_proposal(response.body["data"])}
-      {:ok, %Tesla.Env{} = response} -> {:error, response}
-      {:error, reason} -> {:error, reason}
+      {:ok, %Tesla.Env{status: 200} = response} ->
+        {:ok, build_updated_proposal(response.body["data"])}
+
+      {:ok, %Tesla.Env{} = response} ->
+        {:error, response}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
-  defp build_proposal(proposal) do
+  defp build_updated_proposal(updated_proposal) do
     %Proposal{
-      id: proposal["id"],
+      id: updated_proposal["id"],
+      sales_stage: updated_proposal["sales_stage"],
+      lost_reason: updated_proposal["lost_reason"]
+    }
+  end
+
+  defp build_proposal(proposal) do
+    main_proponent = proposal["main_proponent"]
+    partner = proposal["partner"]
+    credit_analysis = proposal["credit_analysis"]
+    proposal_simulation = proposal["proposal_simulation"]
+
+    main_proponent = %Proponent{
+      id_validation_status: main_proponent["id_validation_status"],
+      bacen_score: main_proponent["bacen_score"],
+      name: main_proponent["name"],
+      email: main_proponent["email"],
+      mobile_phone_number: main_proponent["mobile_phone_number"],
+      birthdate: Date.from_iso8601!(main_proponent["birthdate"]),
+      cpf: main_proponent["cpf"]
+    }
+
+    partner = %Partner{partner_type: partner["partner_type"], slug: partner["slug"]}
+
+    credit_analysis = %CreditAnalysis{
+      warranty_region_status: credit_analysis["warranty_region_status"],
+      warranty_type_status: credit_analysis["warranty_type_status"],
+      warranty_value_status: credit_analysis["warranty_value_status"],
+      pre_qualified: credit_analysis["pre_qualified"]
+    }
+
+    proposal_simulation = %ProposalSimulation{
+      financing_type: proposal_simulation["financing_type"],
+      loan_requested_amount: proposal_simulation["loan_requested_amount"]
+    }
+
+    %Proposal{
       sales_stage: proposal["sales_stage"],
-      lost_reason: proposal["lost_reason"]
+      lost_reason: proposal["lost_reason"],
+      id: proposal["id"],
+      status: proposal["status"],
+      blearning_lead_score: proposal["blearning_lead_score"],
+      main_proponent: main_proponent,
+      partner: partner,
+      credit_analysis: credit_analysis,
+      proposal_simulation: proposal_simulation
     }
   end
 
