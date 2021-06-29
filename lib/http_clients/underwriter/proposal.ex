@@ -16,5 +16,6 @@ defmodule HttpClients.Underwriter.Proposal do
         }
 
   @derive Jason.Encoder
-  defstruct ~w(id sales_stage lost_reason status blearning_lead_score main_proponent partner credit_analysis proposal_simulation)a
+  defstruct ~w(id sales_stage lost_reason status blearning_lead_score main_proponent partner credit_analysis
+    proposal_simulation)a
 end

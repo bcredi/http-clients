@@ -16,5 +16,6 @@ defmodule HttpClients.Underwriter.Proponent do
         }
 
   @derive Jason.Encoder
-  defstruct ~w(id birthdate email cpf name mobile_phone_number proposal_id added_by_proponent serial_id bacen_score id_validation_status)a
+  defstruct ~w(id birthdate email cpf name mobile_phone_number proposal_id added_by_proponent serial_id bacen_score
+    id_validation_status)a
 end
