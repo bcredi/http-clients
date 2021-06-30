@@ -3,7 +3,7 @@ defmodule HttpClients.UnderwriterTest do
   import Tesla.Mock
 
   alias HttpClients.Underwriter
-  alias HttpClients.Underwriter.{Proponent, Proposal}
+  alias HttpClients.Underwriter.{CreditAnalysis, Partner, Proponent, Proposal, ProposalSimulation}
 
   @base_url "http://bcredi.com"
   @client_id "client-id"
@@ -106,39 +106,90 @@ defmodule HttpClients.UnderwriterTest do
   end
 
   describe "get_proposal/2" do
+    @proposal_id UUID.uuid4()
+    @proposal_url "#{@base_url}/v1/proposals/#{@proposal_id}"
+    @get_proposal_response %{
+      "data" => %{
+        "id" => @proposal_id,
+        "status" => "open",
+        "blearning_lead_score" => 987,
+        "main_proponent" => %{
+          "id_validation_status" => "some id_validation_status",
+          "bacen_score" => 515,
+          "name" => "some name",
+          "email" => "some@email.com",
+          "mobile_phone_number" => "some mobile_phone_number",
+          "birthdate" => ~D[1990-12-31],
+          "cpf" => "84931981100"
+        },
+        "partner" => %{
+          "partner_type" => "some partner_type",
+          "slug" => "some slug"
+        },
+        "credit_analysis" => %{
+          "warranty_region_status" => "approved",
+          "warranty_type_status" => "approved",
+          "warranty_value_status" => "approved",
+          "pre_qualified" => false
+        },
+        "proposal_simulation" => %{
+          "financing_type" => "some financing_type",
+          "loan_requested_amount" => 12_000_000.00
+        }
+      }
+    }
+
+    @expected_proposal %Proposal{
+      sales_stage: nil,
+      lost_reason: nil,
+      id: @proposal_id,
+      status: "open",
+      blearning_lead_score: 987,
+      main_proponent: %Proponent{
+        id_validation_status: "some id_validation_status",
+        bacen_score: 515,
+        name: "some name",
+        email: "some@email.com",
+        mobile_phone_number: "some mobile_phone_number",
+        birthdate: ~D[1990-12-31],
+        cpf: "84931981100"
+      },
+      partner: %Partner{
+        partner_type: "some partner_type",
+        slug: "some slug"
+      },
+      credit_analysis: %CreditAnalysis{
+        warranty_region_status: "approved",
+        warranty_type_status: "approved",
+        warranty_value_status: "approved",
+        pre_qualified: false
+      },
+      proposal_simulation: %ProposalSimulation{
+        financing_type: "some financing_type",
+        loan_requested_amount: 12_000_000.00
+      }
+    }
+
     test "returns error when fails" do
-      proposal_id = UUID.uuid4()
-      proposals_url = "#{@base_url}/v1/proposals/#{proposal_id}"
-      mock(fn %{method: :get, url: ^proposals_url} -> {:error, :timeout} end)
-      assert {:error, :timeout} = Underwriter.get_proposal(client(), proposal_id)
+      mock(fn %{method: :get, url: @proposal_url} -> {:error, :timeout} end)
+      assert {:error, :timeout} = Underwriter.get_proposal(client(), @proposal_id)
     end
 
     test "returns error when the proposal doesn't exist" do
-      proposal_id = UUID.uuid4()
-      proposals_url = "#{@base_url}/v1/proposals/#{proposal_id}"
-
-      mock(fn %{method: :get, url: ^proposals_url} ->
+      mock(fn %{method: :get, url: @proposal_url} ->
         %Tesla.Env{status: 404, body: %{"errors" => %{"detail" => "Not Found"}}}
       end)
 
       assert {:error, %Tesla.Env{body: response_body, status: 404}} =
-               Underwriter.get_proposal(client(), proposal_id)
+               Underwriter.get_proposal(client(), @proposal_id)
 
       assert response_body == %{"errors" => %{"detail" => "Not Found"}}
     end
 
     test "returns a proposal" do
-      proposal_id = UUID.uuid4()
-      sales_stage = "open"
-      proposals_url = "#{@base_url}/v1/proposals/#{proposal_id}"
+      mock(fn %{method: :get, url: @proposal_url} -> json(@get_proposal_response, status: 200) end)
 
-      mock(fn %{method: :get, url: ^proposals_url} ->
-        proposal = %{"id" => proposal_id, "sales_stage" => sales_stage}
-        json(%{"data" => proposal}, status: 200)
-      end)
-
-      assert {:ok, %Proposal{id: ^proposal_id, sales_stage: ^sales_stage}} =
-               Underwriter.get_proposal(client(), proposal_id)
+      assert {:ok, @expected_proposal} = Underwriter.get_proposal(client(), @proposal_id)
     end
   end
 
