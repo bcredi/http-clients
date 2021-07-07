@@ -3,7 +3,7 @@ defmodule HttpClients.UnderwriterTest do
   import Tesla.Mock
 
   alias HttpClients.Underwriter
-  alias HttpClients.Underwriter.{CreditAnalysis, Partner, Proponent, Proposal, ProposalSimulation}
+  alias HttpClients.Underwriter.{Partner, Proponent, Proposal}
 
   @base_url "http://bcredi.com"
   @client_id "client-id"
@@ -140,11 +140,13 @@ defmodule HttpClients.UnderwriterTest do
     }
 
     @expected_proposal %Proposal{
+      id: @proposal_id,
       sales_stage: nil,
       lost_reason: nil,
-      id: @proposal_id,
+      financing_type: "some financing_type",
+      loan_requested_amount: 12_000_000.00,
       status: "open",
-      blearning_lead_score: 987,
+      lead_score: 987,
       main_proponent: %Proponent{
         id_validation_status: "some id_validation_status",
         bacen_score: 515,
@@ -158,16 +160,10 @@ defmodule HttpClients.UnderwriterTest do
         partner_type: "some partner_type",
         slug: "some slug"
       },
-      credit_analysis: %CreditAnalysis{
-        warranty_region_status: "approved",
-        warranty_type_status: "approved",
-        warranty_value_status: "approved",
-        pre_qualified: false
-      },
-      proposal_simulation: %ProposalSimulation{
-        financing_type: "some financing_type",
-        loan_requested_amount: 12_000_000.00
-      }
+      warranty_region_status: "approved",
+      warranty_type_status: "approved",
+      warranty_value_status: "approved",
+      pre_qualified: false
     }
 
     test "returns error when fails" do
