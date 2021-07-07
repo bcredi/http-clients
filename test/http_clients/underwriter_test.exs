@@ -112,7 +112,7 @@ defmodule HttpClients.UnderwriterTest do
       "data" => %{
         "id" => @proposal_id,
         "status" => "open",
-        "blearning_lead_score" => 987,
+        "lead_score" => 987,
         "main_proponent" => %{
           "id_validation_status" => "some id_validation_status",
           "bacen_score" => 515,
