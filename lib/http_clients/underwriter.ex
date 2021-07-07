@@ -108,7 +108,7 @@ defmodule HttpClients.Underwriter do
       cpf: main_proponent["cpf"]
     }
 
-    partner = %Partner{partner_type: partner["partner_type"], slug: partner["slug"]}
+    partner = %Partner{type: partner["partner_type"], slug: partner["slug"]}
 
     %Proposal{
       id: proposal["id"],

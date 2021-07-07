@@ -157,7 +157,7 @@ defmodule HttpClients.UnderwriterTest do
         cpf: "84931981100"
       },
       partner: %Partner{
-        partner_type: "some partner_type",
+        type: "some partner_type",
         slug: "some slug"
       },
       warranty_region_status: "approved",
