@@ -116,7 +116,6 @@ defmodule HttpClients.Underwriter do
       financing_type: proposal_simulation["financing_type"],
       loan_requested_amount: proposal_simulation["loan_requested_amount"],
       lost_reason: proposal["lost_reason"],
-      status: proposal["status"],
       lead_score: proposal["blearning_lead_score"],
       main_proponent: main_proponent,
       partner: partner,

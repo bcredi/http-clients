@@ -145,7 +145,6 @@ defmodule HttpClients.UnderwriterTest do
       lost_reason: nil,
       financing_type: "some financing_type",
       loan_requested_amount: 12_000_000.00,
-      status: "open",
       lead_score: 987,
       main_proponent: %Proponent{
         id_validation_status: "some id_validation_status",
