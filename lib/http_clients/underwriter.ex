@@ -2,7 +2,7 @@ defmodule HttpClients.Underwriter do
   @moduledoc """
   Client for Underwriter calls
   """
-  alias HttpClients.Underwriter.{CreditAnalysis, Partner, Proponent, Proposal, ProposalSimulation}
+  alias HttpClients.Underwriter.{Partner, Proponent, Proposal}
 
   @spec get_proponent(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, Tesla.Env.t()}
   def get_proponent(%Tesla.Client{} = client, proponent_id) do
@@ -95,8 +95,6 @@ defmodule HttpClients.Underwriter do
   defp build_proposal(proposal) do
     main_proponent = proposal["main_proponent"]
     partner = proposal["partner"]
-    credit_analysis = proposal["credit_analysis"]
-    proposal_simulation = proposal["proposal_simulation"]
 
     main_proponent = %Proponent{
       id_validation_status: main_proponent["id_validation_status"],
@@ -110,28 +108,19 @@ defmodule HttpClients.Underwriter do
 
     partner = %Partner{partner_type: partner["partner_type"], slug: partner["slug"]}
 
-    credit_analysis = %CreditAnalysis{
-      warranty_region_status: credit_analysis["warranty_region_status"],
-      warranty_type_status: credit_analysis["warranty_type_status"],
-      warranty_value_status: credit_analysis["warranty_value_status"],
-      pre_qualified: credit_analysis["pre_qualified"]
-    }
-
-    proposal_simulation = %ProposalSimulation{
-      financing_type: proposal_simulation["financing_type"],
-      loan_requested_amount: proposal_simulation["loan_requested_amount"]
-    }
-
     %Proposal{
-      sales_stage: proposal["sales_stage"],
-      lost_reason: proposal["lost_reason"],
       id: proposal["id"],
-      status: proposal["status"],
-      blearning_lead_score: proposal["blearning_lead_score"],
+      sales_stage: proposal["sales_stage"],
+      financing_type: proposal["financing_type"],
+      loan_requested_amount: proposal["loan_requested_amount"],
+      lost_reason: proposal["lost_reason"],
+      lead_score: proposal["lead_score"],
       main_proponent: main_proponent,
       partner: partner,
-      credit_analysis: credit_analysis,
-      proposal_simulation: proposal_simulation
+      warranty_region_status: proposal["warranty_region_status"],
+      warranty_type_status: proposal["warranty_type_status"],
+      warranty_value_status: proposal["warranty_value_status"],
+      pre_qualified: proposal["pre_qualified"]
     }
   end
 
