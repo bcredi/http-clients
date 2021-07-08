@@ -126,16 +126,12 @@ defmodule HttpClients.UnderwriterTest do
           "partner_type" => "some partner_type",
           "slug" => "some slug"
         },
-        "credit_analysis" => %{
-          "warranty_region_status" => "approved",
-          "warranty_type_status" => "approved",
-          "warranty_value_status" => "approved",
-          "pre_qualified" => false
-        },
-        "proposal_simulation" => %{
-          "financing_type" => "some financing_type",
-          "loan_requested_amount" => 12_000_000.00
-        }
+        "warranty_region_status" => "approved",
+        "warranty_type_status" => "approved",
+        "warranty_value_status" => "approved",
+        "pre_qualified" => false,
+        "financing_type" => "some financing_type",
+        "loan_requested_amount" => 12_000_000.00
       }
     }
 

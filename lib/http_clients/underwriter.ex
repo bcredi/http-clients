@@ -95,8 +95,6 @@ defmodule HttpClients.Underwriter do
   defp build_proposal(proposal) do
     main_proponent = proposal["main_proponent"]
     partner = proposal["partner"]
-    credit_analysis = proposal["credit_analysis"]
-    proposal_simulation = proposal["proposal_simulation"]
 
     main_proponent = %Proponent{
       id_validation_status: main_proponent["id_validation_status"],
@@ -113,16 +111,16 @@ defmodule HttpClients.Underwriter do
     %Proposal{
       id: proposal["id"],
       sales_stage: proposal["sales_stage"],
-      financing_type: proposal_simulation["financing_type"],
-      loan_requested_amount: proposal_simulation["loan_requested_amount"],
+      financing_type: proposal["financing_type"],
+      loan_requested_amount: proposal["loan_requested_amount"],
       lost_reason: proposal["lost_reason"],
       lead_score: proposal["lead_score"],
       main_proponent: main_proponent,
       partner: partner,
-      warranty_region_status: credit_analysis["warranty_region_status"],
-      warranty_type_status: credit_analysis["warranty_type_status"],
-      warranty_value_status: credit_analysis["warranty_value_status"],
-      pre_qualified: credit_analysis["pre_qualified"]
+      warranty_region_status: proposal["warranty_region_status"],
+      warranty_type_status: proposal["warranty_type_status"],
+      warranty_value_status: proposal["warranty_value_status"],
+      pre_qualified: proposal["pre_qualified"]
     }
   end
 
