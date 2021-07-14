@@ -39,14 +39,11 @@ defmodule HttpClients.Neurotech do
     end
   end
 
-  defp check_identity_response(status) do
-    case status do
-      "APROVADO" -> {:ok, true}
-      "REPROVADO" -> {:ok, false}
-      "PENDENTE" -> {:ok, false}
-      _failed -> {:error, :failed}
-    end
-  end
+  defp check_identity_response(status)
+  defp check_identity_response("APROVADO"), do: {:ok, true}
+  defp check_identity_response("REPROVADO"), do: {:ok, false}
+  defp check_identity_response("PENDENTE"), do: {:ok, false}
+  defp check_identity_response(_failed), do: {:error, :failed}
 
   @spec compute_bacen_score(Tesla.Client.t(), Credentials.t(), Person.t(), integer(), Keyword.t()) ::
           {:ok, Score.t()} | {:error, any()}
