@@ -29,7 +29,7 @@ defmodule HttpClients.Neurotech do
 
     case Request.submit(client, request) do
       {:ok, %Tesla.Env{status: 200, body: %{"StatusCode" => "0100"}} = response} ->
-        {:ok, approved?(response.body["Result"]["Result"])}
+        check_identity_response(response.body["Result"]["Result"])
 
       {:ok, %Tesla.Env{} = response} ->
         {:error, response}
@@ -39,7 +39,14 @@ defmodule HttpClients.Neurotech do
     end
   end
 
-  defp approved?(status), do: status == "APROVADO"
+  defp check_identity_response(status) do
+    case status do
+      "APROVADO" -> {:ok, true}
+      "REPROVADO" -> {:ok, false}
+      "PENDENTE" -> {:ok, false}
+      _failed -> {:error, :failed}
+    end
+  end
 
   @spec compute_bacen_score(Tesla.Client.t(), Credentials.t(), Person.t(), integer(), Keyword.t()) ::
           {:ok, Score.t()} | {:error, any()}
