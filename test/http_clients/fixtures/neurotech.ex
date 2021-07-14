@@ -23,7 +23,16 @@ defmodule HttpClients.Fixtures.Neurotech do
   def check_identity_response(:pending) do
     %{
       "Result" => %{
-        "Result" => "PENDING"
+        "Result" => "PENDENTE"
+      },
+      "StatusCode" => "0100"
+    }
+  end
+
+  def check_identity_response(:failed) do
+    %{
+      "Result" => %{
+        "Result" => "FALHA"
       },
       "StatusCode" => "0100"
     }

@@ -37,6 +37,15 @@ defmodule HttpClients.NeurotechTest do
                Neurotech.check_identity(client(), credentials(), person, @transaction_id)
     end
 
+    test "returns error when identity flow failed" do
+      response_body = check_identity_response(:failed)
+      mock(fn %{url: "/submit", method: :post} -> json(response_body) end)
+      person = %Neurotech.Person{birthdate: Date.utc_today()}
+
+      assert Neurotech.check_identity(client(), credentials(), person, @transaction_id) ==
+               {:error, :failed}
+    end
+
     test "returns error when the request fails" do
       mock(fn %{url: "/submit", method: :post} ->
         json(%{"errors" => "some reason"}, status: 404)
