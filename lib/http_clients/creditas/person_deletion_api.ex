@@ -4,25 +4,21 @@ defmodule HttpClients.Creditas.PersonDeletionApi do
   alias HttpClients.Creditas.PersonDeletionApi.PersonDeletion
 
   @spec get(Tesla.Client.t(), binary()) :: {:error, any}
-  def get(client, person_id) do
-    case Tesla.get(client, "/person-deletions/#{person_id}") do
-      {:ok, %Tesla.Env{status: 200, body: body}} ->
-        {:ok,
-         %PersonDeletion{
-           id: body["id"],
-           person_id: body["person"]["id"],
-           person_cpf: body["person"]["mainDocument"]["code"]
-         }}
-
-      {:ok, %Tesla.Env{status: 404}} ->
-        {:error, :not_found}
-
-      {:ok, %Tesla.Env{} = response} ->
-        {:error, response}
-
-      {:error, reason} ->
-        {:error, reason}
+  def get(client, person_deletion_id) do
+    case Tesla.get(client, "/person-deletions/#{person_deletion_id}") do
+      {:ok, %Tesla.Env{status: 200, body: body}} -> {:ok, build_person_deletion(body)}
+      {:ok, %Tesla.Env{status: 404}} -> {:error, :not_found}
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp build_person_deletion(attrs) do
+    %PersonDeletion{
+      id: attrs["id"],
+      person_id: attrs["person"]["id"],
+      person_cpf: attrs["person"]["mainDocument"]["code"]
+    }
   end
 
   @spec client(String.t(), String.t(), String.t()) :: Tesla.Client.t()
