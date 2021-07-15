@@ -1,10 +1,34 @@
 defmodule HttpClients.Creditas.PersonDeletionApiTest do
   use ExUnit.Case
 
+  import Tesla.Mock
+
   alias HttpClients.Creditas.PersonDeletionApi
 
+  @base_url "https://api.creditas.io"
+
+  describe "get/2" do
+    @middlewares [
+      {Tesla.Middleware.BaseUrl, "https://api.creditas.io"},
+      {Tesla.Middleware.Headers, [{"Authorization", "Bearer 123"}]},
+      {Tesla.Middleware.JSON, decode_content_types: ["some+json"]},
+      {Tesla.Middleware.Logger, filter_headers: ["Authorization"]}
+    ]
+
+    @client Tesla.client(@middlewares)
+    @person_deletion_id "some_id"
+    @expected_url "#{@base_url}/person-deletions/#{@person_deletion_id}"
+
+    test "returns error when request times out" do
+      mock_global(fn %{url: @expected_url, method: :get} ->
+        {:error, :timeout}
+      end)
+
+      assert PersonDeletionApi.get(@client, @person_deletion_id) == {:error, :timeout}
+    end
+  end
+
   describe "client/3" do
-    @base_url "https://api.creditas.io"
     @bearer_token "some_jwt_token"
     @decode_content_types [decode_content_types: ["application/vnd.creditas.v1+json"]]
 

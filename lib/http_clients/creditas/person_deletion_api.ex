@@ -1,6 +1,13 @@
 defmodule HttpClients.Creditas.PersonDeletionApi do
   @moduledoc false
 
+  @spec get(Tesla.Client.t(), binary()) :: {:error, any}
+  def get(client, person_id) do
+    case Tesla.get(client, "/person-deletions/#{person_id}") do
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   @spec client(String.t(), String.t(), String.t()) :: Tesla.Client.t()
   def client(base_url, bearer_token, tenant_id \\ "creditasbr") do
     headers = [
