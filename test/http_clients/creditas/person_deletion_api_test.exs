@@ -43,6 +43,32 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
       assert PersonDeletionApi.get(@client, @person_deletion_id) ==
                {:error, %Tesla.Env{body: error_body, status: 400}}
     end
+
+    test "returns person deletion" do
+      response = %{
+        "id" => UUID.uuid4(),
+        "person" => %{
+          "id" => UUID.uuid4(),
+          "mainDocument" => %{
+            "type" => "CPF",
+            "code" => "62393275819"
+          }
+        }
+      }
+
+      expected_person_deletion = %PersonDeletionApi.PersonDeletion{
+        id: response["id"],
+        person_id: response["person"]["id"],
+        person_cpf: response["person"]["mainDocument"]["code"]
+      }
+
+      mock_global(fn %{url: @expected_url, method: :get} ->
+        %Tesla.Env{status: 200, body: response}
+      end)
+
+      assert PersonDeletionApi.get(@client, @person_deletion_id) ==
+               {:ok, expected_person_deletion}
+    end
   end
 
   describe "client/3" do
