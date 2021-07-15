@@ -14,6 +14,9 @@ defmodule HttpClients.Creditas.PersonDeletionApi do
            person_cpf: body["person"]["mainDocument"]["code"]
          }}
 
+      {:ok, %Tesla.Env{status: 404}} ->
+        {:error, :not_found}
+
       {:ok, %Tesla.Env{} = response} ->
         {:error, response}
 
