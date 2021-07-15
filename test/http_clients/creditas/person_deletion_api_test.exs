@@ -26,6 +26,23 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
 
       assert PersonDeletionApi.get(@client, @person_deletion_id) == {:error, :timeout}
     end
+
+    test "returns error when request is not accepted" do
+      error_body = %{
+        "code" => "INPUT_VALIDATION_ERROR",
+        "message" => "Some fields are not valid.",
+        "details" => [
+          %{"target" => "participantId", "message" => "Field has invalid format."}
+        ]
+      }
+
+      mock_global(fn %{url: @expected_url, method: :get} ->
+        %Tesla.Env{status: 400, body: error_body}
+      end)
+
+      assert PersonDeletionApi.get(@client, @person_deletion_id) ==
+               {:error, %Tesla.Env{body: error_body, status: 400}}
+    end
   end
 
   describe "client/3" do

@@ -4,6 +4,7 @@ defmodule HttpClients.Creditas.PersonDeletionApi do
   @spec get(Tesla.Client.t(), binary()) :: {:error, any}
   def get(client, person_id) do
     case Tesla.get(client, "/person-deletions/#{person_id}") do
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
   end
