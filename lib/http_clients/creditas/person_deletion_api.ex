@@ -3,7 +3,7 @@ defmodule HttpClients.Creditas.PersonDeletionApi do
 
   alias HttpClients.Creditas.PersonDeletionApi.PersonDeletion
 
-  @spec get(Tesla.Client.t(), binary()) :: {:error, any}
+  @spec get(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, PersonDeletion.t()}
   def get(client, person_deletion_id) do
     case Tesla.get(client, "/person-deletions/#{person_deletion_id}") do
       {:ok, %Tesla.Env{status: 200, body: body}} -> {:ok, build_person_deletion(body)}

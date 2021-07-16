@@ -2,8 +2,8 @@ defmodule HttpClients.Creditas.PersonDeletionApi.PersonDeletion do
   @moduledoc false
 
   @type t :: %__MODULE__{
-          id: binary(),
-          person_id: binary(),
+          id: String.t(),
+          person_id: String.t(),
           person_cpf: String.t()
         }
 
