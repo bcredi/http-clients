@@ -1,6 +1,26 @@
 defmodule HttpClients.Creditas.PersonDeletionApi do
   @moduledoc false
 
+  alias HttpClients.Creditas.PersonDeletionApi.Acknowledgment
+
+  @spec acknowledgments(Tesla.Client.t(), Acknowledgment.t()) :: {:error, any} | {:ok }
+  def acknowledgments(client, ack) do
+    case Tesla.post(client, "/#{ack.person_deletion_id}/acknowledgments", build_ack_payload(ack)) do
+      {:ok, %Tesla.Env{ status: 200 } } -> { :ok }
+      {:ok, %Tesla.Env{} = response} -> {:error, response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @spec build_ack_payload(Acknowledgment.t()) :: map()
+  defp build_ack_payload(ack) do
+    %{
+      systemName: ack.system_name,
+      status: ack.status,
+      notConfirmedReason: ack.not_confirmed_reason
+    }
+  end
+
   @spec client(String.t(), String.t(), String.t()) :: Tesla.Client.t()
   def client(base_url, bearer_token, tenant_id \\ "creditasbr") do
     headers = [
