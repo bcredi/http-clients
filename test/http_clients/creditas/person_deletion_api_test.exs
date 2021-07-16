@@ -1,7 +1,10 @@
 defmodule HttpClients.Creditas.PersonDeletionApiTest do
   use ExUnit.Case
 
+  import Tesla.Mock
+
   alias HttpClients.Creditas.PersonDeletionApi
+  alias HttpClients.Creditas.PersonDeletionApi.{Acknowledgment}
 
   describe "client/3" do
     @base_url "https://api.creditas.io"
@@ -51,5 +54,33 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
                pre: expected_configs
              }
     end
+
+  end
+
+  describe "acknowledgments/2" do
+
+    @base_url "https://api.creditas.io"
+    @bearer_token "some_jwt_token"
+
+    test "create an acknowledgment to a deletion person" do
+
+      ack = %Acknowledgment{
+        person_deletion_id: "PDR-6346740B-88C1-4F27-B3CD-B482BD5A5AA4",
+        system_name: "bcredi"
+      }
+
+      %Acknowledgment{person_deletion_id: person_deletion_id} = ack
+
+      url = "#{@base_url}/#{person_deletion_id}/acknowledgments"
+
+      mock_global(fn
+        %{method: :post, url: ^url} ->
+          %Tesla.Env{status: 200}
+      end)
+
+      client = PersonDeletionApi.client(@base_url, @bearer_token)
+      assert PersonDeletionApi.acknowledgments(client, ack) == {:ok}
+    end
+
   end
 end
