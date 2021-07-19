@@ -160,7 +160,7 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
       assert PersonDeletionApi.acknowledgments(@client, @ack) == {:error, "unexpected error"}
     end
 
-    test "acknowledgment deletion person" do
+    test "acknowledges person deletion" do
       mock_global(fn
         %{method: :post, url: @url} -> %Tesla.Env{status: 200}
       end)
