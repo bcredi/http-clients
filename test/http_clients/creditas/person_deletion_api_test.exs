@@ -4,7 +4,6 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
   import Tesla.Mock
 
   alias HttpClients.Creditas.PersonDeletionApi
-  alias HttpClients.Creditas.PersonDeletionApi.{Acknowledgment}
 
   @base_url "https://api.creditas.io"
 
@@ -132,11 +131,9 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
                pre: expected_configs
              }
     end
-
   end
 
   describe "acknowledgments/2" do
-
     @base_url "https://api.creditas.io"
     @bearer_token "some_jwt_token"
 
@@ -152,7 +149,6 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
     @client PersonDeletionApi.client(@base_url, @bearer_token)
 
     test "create an acknowledgment to a deletion person" do
-
       mock_global(fn
         %{method: :post, url: @url} ->
           %Tesla.Env{status: 200}
@@ -162,17 +158,15 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
     end
 
     test "try to create an acknowledgment but returns http 404" do
-
       mock_global(fn
         %{method: :post, url: @url} ->
           %Tesla.Env{status: 404}
-        end)
+      end)
 
       assert PersonDeletionApi.acknowledgments(@client, @ack) == {:error, %Tesla.Env{status: 404}}
     end
 
     test "try to create an acknowledgment but returns unexpected error" do
-
       mock_global(fn
         %{method: :post, url: @url} ->
           {:error, "unexpected error"}
@@ -180,6 +174,5 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
 
       assert PersonDeletionApi.acknowledgments(@client, @ack) == {:error, "unexpected error"}
     end
-
   end
 end

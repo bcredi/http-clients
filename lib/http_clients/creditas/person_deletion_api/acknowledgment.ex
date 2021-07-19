@@ -5,7 +5,7 @@ defmodule HttpClients.Creditas.PersonDeletionApi.Acknowledgment do
           person_deletion_id: String.t(),
           system_name: String.t(),
           status: String.t(),
-          not_confirmed_reason: String.t(),
+          not_confirmed_reason: String.t()
         }
 
   @derive Jason.Encoder
