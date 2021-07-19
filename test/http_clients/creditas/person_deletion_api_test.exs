@@ -4,6 +4,7 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
   import Tesla.Mock
 
   alias HttpClients.Creditas.PersonDeletionApi
+  alias HttpClients.Creditas.PersonDeletionApi.Acknowledgment
 
   @base_url "https://api.creditas.io"
 
