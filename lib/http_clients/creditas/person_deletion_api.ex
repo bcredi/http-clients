@@ -4,7 +4,7 @@ defmodule HttpClients.Creditas.PersonDeletionApi do
   alias HttpClients.Creditas.PersonDeletionApi.{Acknowledgment, PersonDeletion}
 
   @spec acknowledgments(Tesla.Client.t(), Acknowledgment.t()) :: {:error, any} | :ok
-  def acknowledgments(client, ack) do
+  def ack_deletion(client, ack) do
     case Tesla.post(client, "/#{ack.person_deletion_id}/acknowledgments", build_ack_payload(ack)) do
       {:ok, %Tesla.Env{status: 200}} -> :ok
       {:ok, %Tesla.Env{} = response} -> {:error, response}
