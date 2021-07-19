@@ -137,7 +137,6 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
 
   describe "acknowledgments/2" do
     @person_deletion_id "PDR-6346740B-88C1-4F27-B3CD-B482BD5A5AA4"
-
     @url "#{@base_url}/#{@person_deletion_id}/acknowledgments"
 
     @ack %Acknowledgment{
