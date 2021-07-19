@@ -3,13 +3,21 @@ defmodule HttpClients.Creditas.PersonDeletionApi do
 
   alias HttpClients.Creditas.PersonDeletionApi.{Acknowledgment, PersonDeletion}
 
-  @spec acknowledgments(Tesla.Client.t(), Acknowledgment.t()) :: {:error, any} | {:ok}
+  @spec acknowledgments(Tesla.Client.t(), Acknowledgment.t()) :: {:error, any} | :ok
   def acknowledgments(client, ack) do
     case Tesla.post(client, "/#{ack.person_deletion_id}/acknowledgments", build_ack_payload(ack)) do
-      {:ok, %Tesla.Env{status: 200}} -> {:ok}
+      {:ok, %Tesla.Env{status: 200}} -> :ok
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp build_ack_payload(ack) do
+    %{
+      systemName: ack.system_name,
+      status: ack.status,
+      notConfirmedReason: ack.not_confirmed_reason
+    }
   end
 
   @spec get(Tesla.Client.t(), String.t()) :: {:error, any} | {:ok, PersonDeletion.t()}
@@ -20,15 +28,6 @@ defmodule HttpClients.Creditas.PersonDeletionApi do
       {:ok, %Tesla.Env{} = response} -> {:error, response}
       {:error, reason} -> {:error, reason}
     end
-  end
-
-  @spec build_ack_payload(Acknowledgment.t()) :: map()
-  defp build_ack_payload(ack) do
-    %{
-      systemName: ack.system_name,
-      status: ack.status,
-      notConfirmedReason: ack.not_confirmed_reason
-    }
   end
 
   defp build_person_deletion(attrs) do

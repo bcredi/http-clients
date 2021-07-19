@@ -8,15 +8,16 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
 
   @base_url "https://api.creditas.io"
 
-  describe "get/2" do
-    @middlewares [
-      {Tesla.Middleware.BaseUrl, "https://api.creditas.io"},
-      {Tesla.Middleware.Headers, [{"Authorization", "Bearer 123"}]},
-      {Tesla.Middleware.JSON, decode_content_types: ["some+json"]},
-      {Tesla.Middleware.Logger, filter_headers: ["Authorization"]}
-    ]
+  @middlewares [
+    {Tesla.Middleware.BaseUrl, @base_url},
+    {Tesla.Middleware.Headers, [{"Authorization", "Bearer 123"}]},
+    {Tesla.Middleware.JSON, decode_content_types: ["some+json"]},
+    {Tesla.Middleware.Logger, filter_headers: ["Authorization"]}
+  ]
 
-    @client Tesla.client(@middlewares)
+  @client Tesla.client(@middlewares)
+
+  describe "get/2" do
     @person_deletion_id "some_id"
     @expected_url "#{@base_url}/person-deletions/#{@person_deletion_id}"
 
@@ -135,9 +136,6 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
   end
 
   describe "acknowledgments/2" do
-    @base_url "https://api.creditas.io"
-    @bearer_token "some_jwt_token"
-
     @person_deletion_id "PDR-6346740B-88C1-4F27-B3CD-B482BD5A5AA4"
 
     @url "#{@base_url}/#{@person_deletion_id}/acknowledgments"
@@ -147,33 +145,28 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
       system_name: "bcredi"
     }
 
-    @client PersonDeletionApi.client(@base_url, @bearer_token)
-
-    test "create an acknowledgment to a deletion person" do
+    test "acknowledgment with not found deletion" do
       mock_global(fn
-        %{method: :post, url: @url} ->
-          %Tesla.Env{status: 200}
-      end)
-
-      assert PersonDeletionApi.acknowledgments(@client, @ack) == {:ok}
-    end
-
-    test "try to create an acknowledgment but returns http 404" do
-      mock_global(fn
-        %{method: :post, url: @url} ->
-          %Tesla.Env{status: 404}
+        %{method: :post, url: @url} -> %Tesla.Env{status: 404}
       end)
 
       assert PersonDeletionApi.acknowledgments(@client, @ack) == {:error, %Tesla.Env{status: 404}}
     end
 
-    test "try to create an acknowledgment but returns unexpected error" do
+    test "acknowledgment with unexpected error" do
       mock_global(fn
-        %{method: :post, url: @url} ->
-          {:error, "unexpected error"}
+        %{method: :post, url: @url} -> {:error, "unexpected error"}
       end)
 
       assert PersonDeletionApi.acknowledgments(@client, @ack) == {:error, "unexpected error"}
+    end
+
+    test "acknowledgment deletion person" do
+      mock_global(fn
+        %{method: :post, url: @url} -> %Tesla.Env{status: 200}
+      end)
+
+      assert PersonDeletionApi.acknowledgments(@client, @ack) == :ok
     end
   end
 end
