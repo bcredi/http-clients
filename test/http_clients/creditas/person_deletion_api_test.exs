@@ -149,7 +149,7 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
         %{method: :post, url: @url} -> %Tesla.Env{status: 404}
       end)
 
-      assert PersonDeletionApi.acknowledgments(@client, @ack) == {:error, %Tesla.Env{status: 404}}
+      assert PersonDeletionApi.ack_deletion(@client, @ack) == {:error, %Tesla.Env{status: 404}}
     end
 
     test "doesn't acknowledge a person deletion when the service fail" do
@@ -157,7 +157,7 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
         %{method: :post, url: @url} -> {:error, "unexpected error"}
       end)
 
-      assert PersonDeletionApi.acknowledgments(@client, @ack) == {:error, "unexpected error"}
+      assert PersonDeletionApi.ack_deletion(@client, @ack) == {:error, "unexpected error"}
     end
 
     test "acknowledges person deletion" do
@@ -165,7 +165,7 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
         %{method: :post, url: @url} -> %Tesla.Env{status: 200}
       end)
 
-      assert PersonDeletionApi.acknowledgments(@client, @ack) == :ok
+      assert PersonDeletionApi.ack_deletion(@client, @ack) == :ok
     end
   end
 end
