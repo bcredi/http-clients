@@ -144,7 +144,7 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
       system_name: "bcredi"
     }
 
-    test "acknowledgment with not found deletion" do
+    test "doesn't acknowledge a missing person deletion" do
       mock_global(fn
         %{method: :post, url: @url} -> %Tesla.Env{status: 404}
       end)
