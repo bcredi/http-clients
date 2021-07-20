@@ -4,18 +4,20 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
   import Tesla.Mock
 
   alias HttpClients.Creditas.PersonDeletionApi
+  alias HttpClients.Creditas.PersonDeletionApi.Acknowledgment
 
   @base_url "https://api.creditas.io"
 
-  describe "get/2" do
-    @middlewares [
-      {Tesla.Middleware.BaseUrl, "https://api.creditas.io"},
-      {Tesla.Middleware.Headers, [{"Authorization", "Bearer 123"}]},
-      {Tesla.Middleware.JSON, decode_content_types: ["some+json"]},
-      {Tesla.Middleware.Logger, filter_headers: ["Authorization"]}
-    ]
+  @middlewares [
+    {Tesla.Middleware.BaseUrl, @base_url},
+    {Tesla.Middleware.Headers, [{"Authorization", "Bearer 123"}]},
+    {Tesla.Middleware.JSON, decode_content_types: ["some+json"]},
+    {Tesla.Middleware.Logger, filter_headers: ["Authorization"]}
+  ]
 
-    @client Tesla.client(@middlewares)
+  @client Tesla.client(@middlewares)
+
+  describe "get/2" do
     @person_deletion_id "some_id"
     @expected_url "#{@base_url}/person-deletions/#{@person_deletion_id}"
 
@@ -130,6 +132,40 @@ defmodule HttpClients.Creditas.PersonDeletionApiTest do
       assert PersonDeletionApi.client(@base_url, @bearer_token, tenant_id) == %Tesla.Client{
                pre: expected_configs
              }
+    end
+  end
+
+  describe "ack_deletion/2" do
+    @person_deletion_id "PDR-6346740B-88C1-4F27-B3CD-B482BD5A5AA4"
+    @url "#{@base_url}/#{@person_deletion_id}/acknowledgments"
+
+    @ack %Acknowledgment{
+      person_deletion_id: @person_deletion_id,
+      system_name: "bcredi"
+    }
+
+    test "doesn't acknowledge a missing person deletion" do
+      mock_global(fn
+        %{method: :post, url: @url} -> %Tesla.Env{status: 404}
+      end)
+
+      assert PersonDeletionApi.ack_deletion(@client, @ack) == {:error, %Tesla.Env{status: 404}}
+    end
+
+    test "doesn't acknowledge a person deletion when the service fail" do
+      mock_global(fn
+        %{method: :post, url: @url} -> {:error, "unexpected error"}
+      end)
+
+      assert PersonDeletionApi.ack_deletion(@client, @ack) == {:error, "unexpected error"}
+    end
+
+    test "acknowledges person deletion" do
+      mock_global(fn
+        %{method: :post, url: @url} -> %Tesla.Env{status: 200}
+      end)
+
+      assert PersonDeletionApi.ack_deletion(@client, @ack) == :ok
     end
   end
 end
